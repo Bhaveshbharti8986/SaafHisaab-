@@ -1,0 +1,25 @@
+<svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="38%" r="75%">
+      <stop offset="0%" stop-color="#0c2a4d"/>
+      <stop offset="100%" stop-color="#05080F"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="512" height="512" rx="96" fill="url(#bg)"/>
+
+  <!-- Balance scale mark, scaled/centered from the 200x200 logo viewBox -->
+  <g transform="translate(56,72) scale(1.6)">
+    <circle cx="100" cy="34" r="13" stroke="#38bdf8" stroke-width="6" fill="#05080F"/>
+    <circle cx="100" cy="34" r="5" fill="#ffffff"/>
+    <line x1="100" y1="46" x2="100" y2="163" stroke="#38bdf8" stroke-width="9" stroke-linecap="round"/>
+    <line x1="78" y1="172" x2="122" y2="172" stroke="#ffffff" stroke-width="7" stroke-linecap="round"/>
+    <line x1="64" y1="180" x2="136" y2="180" stroke="#ffffff" stroke-width="7" stroke-linecap="round"/>
+    <line x1="38" y1="68" x2="162" y2="68" stroke="#ffffff" stroke-width="8" stroke-linecap="round"/>
+    <path d="M55 68 L33 122 M55 68 L80 122" stroke="#ffffff" stroke-width="5" stroke-linecap="round" fill="none"/>
+    <path d="M28 122 Q56 150 85 122" stroke="#38bdf8" stroke-width="7" stroke-linecap="round" fill="none"/>
+    <path d="M145 68 L120 122 M145 68 L167 122" stroke="#ffffff" stroke-width="5" stroke-linecap="round" fill="none"/>
+    <path d="M115 122 Q144 150 172 122" stroke="#38bdf8" stroke-width="7" stroke-linecap="round" fill="none"/>
+  </g>
+</svg>
