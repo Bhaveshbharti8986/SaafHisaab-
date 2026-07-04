@@ -39,7 +39,7 @@ export default function Welcome({ isSplash = false }) {
 
   useEffect(() => {
     if (isSplash) {
-      const timer = setTimeout(() => setShowButtons(true), 2000);
+      const timer = setTimeout(() => setShowButtons(true),3000 );
       return () => clearTimeout(timer);
     }
   }, [isSplash]);
