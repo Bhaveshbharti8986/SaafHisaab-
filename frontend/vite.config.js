@@ -1,6 +1,9 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
+ import dotenv from "dotenv";
+
+dotenv.config(); //
 
 export default defineConfig({
   plugins: [
@@ -44,11 +47,13 @@ export default defineConfig({
     port: parseInt(process.env.PORT || "5173"),
     host: "0.0.0.0",
     allowedHosts: true,
-    proxy: {
-      "/api": {
-        target: "http://localhost:8080",
-        changeOrigin: true,
-      },
+ proxy: {
+  "/api": {
+    target: process.env.VITE_BACKEND_URL, // 👈 use process.env here
+    changeOrigin: true,
+    secure: true,
+  },
+},
     },
   },
-});
+);
