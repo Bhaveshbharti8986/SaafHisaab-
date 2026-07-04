@@ -25,25 +25,12 @@ import cookieParser from "cookie-parser";
 const app = express();
 const PORT = config.PORT || 8080;
 
-const allowedOrigins = [
-  "https://saafhisaab.vercel.app",
-  "https://saafhisaabfrontend2-git-b4bb8d-bhaveshbharti8986-2465s-projects.vercel.app",
-  "https://saafhisaabfrontend2-3glp-o1w42cdkq.vercel.app",
-  "http://localhost:5173" // for local dev
-];
-
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-    credentials: true,
-  })
-);
+app.use(cors(
+  {
+    origin: config.FRONTEND_URL,
+    credentials: true
+  }
+)
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
