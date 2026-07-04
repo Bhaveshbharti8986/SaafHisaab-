@@ -323,7 +323,7 @@ export const login = async (req, res) => {
   try {
     const { employeeId, pin , role} = req.body;
 
-    if ( !employeeId || role==="seth" ) {
+    if ( !employeeId  ) {
       return res.status(400).json({ error: role==="seth" ? "Email/Mobile is required" : "Employee ID or Mobile is required" });
     }
 
