@@ -82,8 +82,9 @@ export async function syncQueue() {
 
   for (const item of queue) {
     try {
-      const BASE = "/api";
-      const res = await fetch(`${BASE}${item.path}`, {
+      const BASE = import.meta.env.VITE_BACKEND_URL || "/api";
+      const res = await fetch(`${BASE}${item.path}`, 
+      {
         method: item.method,
         headers: item.body ? { "Content-Type": "application/json" } : {},
         body: item.body ? JSON.stringify(item.body) : undefined,
