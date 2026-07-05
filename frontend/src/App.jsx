@@ -26,9 +26,11 @@ import Landing from "./pages/Landing.jsx";
 import Welcome from "./pages/welcome.jsx";
 
 // ✅ Helper: try to refresh the access token silently
+const BACKEND = import.meta.env.VITE_BACKEND_URL || "/api";
+
 async function tryRefreshToken() {
   try {
-    const res = await fetch("/api/auth/refresh-token", {
+    const res = await fetch(`${BACKEND}/auth/refresh-token`, {
       method: "POST",
       credentials: "include", // sends the httpOnly refreshToken cookie
     });
@@ -39,7 +41,6 @@ async function tryRefreshToken() {
     return null;
   }
 }
-
 export default function App() {
   const [location] = useLocation();
 
