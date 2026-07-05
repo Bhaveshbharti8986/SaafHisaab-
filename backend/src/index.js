@@ -25,13 +25,22 @@ import cookieParser from "cookie-parser";
 const app = express();
 const PORT = config.PORT || 8080;
 
-app.use(cors(
-  {
-    origin: config.FRONTEND_URL,
-    credentials: true
-  }
-));
 
+const allowedOrigins = [
+  "https://saaf-hisaab.vercel.app",
+  "http://localhost:5173",
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan("dev"));
