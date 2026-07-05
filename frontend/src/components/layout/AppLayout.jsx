@@ -24,7 +24,6 @@ const MUNSI_NAV = [
 
 import { decodeToken } from "../../lib/jwt.js";
 import SaafHisaabLogo from "../../pages/SaafHisaabLogo.jsx";
-import ToastListener from "./ToastListener.jsx";
 
 export default function AppLayout({ children, title, showBack, munsiMode }) {
   const [location, navigate] = useLocation();
@@ -99,9 +98,7 @@ export default function AppLayout({ children, title, showBack, munsiMode }) {
 
       <div className="w-full max-w-[480px] flex flex-col min-h-screen bg-gray-50 relative shadow-2xl">
       
-        {/* Toast Popup */}
-  
-      <ToastListener/>
+      
         {/* Top Bar */}
       
 <header className=" bg-gradient-to-t from-blue-900 to-gray-900  text-white px-5 py-4 flex items-center gap-4 sticky top-0 z-30 shadow-[0_4px_25px_rgba(0,0,0,0.5)] border-b border-white/10 backdrop-blur-md">
