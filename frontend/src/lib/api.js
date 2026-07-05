@@ -1,6 +1,6 @@
 import { addToQueue } from "./offlineSync.js";
 
-const BASE = "/api";
+const BASE = import.meta.env.VITE_BACKEND_URL || "/api";
 
 // ✅ Try to refresh the access token silently using the httpOnly cookie
 async function tryRefreshToken() {
