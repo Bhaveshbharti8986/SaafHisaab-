@@ -171,7 +171,7 @@ export default function Dashboard() {
           {pending.length > 0 && (
             <section className="pb-8">
               <div className="flex items-center justify-between mb-3 px-1">
-                <h2 className="font-bold text-gray-800 text-sm">Action Required</h2>
+                <h2 className="font-bold text-gray-800 text-sm">Action Required    </h2>
                 <span className="px-2 py-0.5 rounded-full bg-red-100 text-red-600 text-[10px] font-bold">{pending.length} Pending</span>
               </div>
               <div className="bg-white rounded-3xl shadow-[0_4px_15px_rgba(0,0,0,0.03)] border border-gray-100 overflow-hidden">
