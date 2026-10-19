@@ -111,6 +111,7 @@ export default function Register() {
 
       localStorage.setItem("accessToken", res.accessToken);
       sessionStorage.setItem("unlocked", "true");
+      sessionStorage.setItem("showWelcomeSplash", "true");
       showToast("success", "Mandi Registered Successfully!");
       window.location.href = "/";
     } catch (err) {

@@ -43,6 +43,7 @@ export default function Login() {
 if (token) {
   localStorage.setItem("accessToken", token);
   sessionStorage.setItem("unlocked", "true");
+  sessionStorage.setItem("showWelcomeSplash", "true");
   showToast("success", "Logged in successfully!");
   window.location.href = "/";
 } } catch (err) {

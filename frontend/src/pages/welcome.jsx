@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { LogIn, Store, ChevronRight } from "lucide-react";
 import SaafHisaabLogo from "./SaafHisaabLogo"; // Ensure this file exists
@@ -35,14 +35,7 @@ const Particles = () => {
 };
 
 export default function Welcome({ isSplash = false }) {
-  const [showButtons, setShowButtons] = useState(!isSplash);
-
-  useEffect(() => {
-    if (isSplash) {
-      const timer = setTimeout(() => setShowButtons(true),3000 );
-      return () => clearTimeout(timer);
-    }
-  }, [isSplash]);
+  const showButtons = !isSplash;
 
   return (
     <div className="fixed inset-0 bg-gradient-to-b  from-blue-900 to-gray-900 flex flex-col items-center justify-center overflow-hidden font-sans">

@@ -44,14 +44,29 @@ async function tryRefreshToken() {
 export default function App() {
   const [location] = useLocation();
 
-  // ✅ All hooks at the top — never inside conditions
-  const [checking, setChecking] = useState(true);
-  const [isValid, setIsValid] = useState(false);
-  const [role, setRole] = useState(null);
+  // Read stored token and first-login splash flag
+  const storedToken = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+  const isFirstLogin = typeof window !== "undefined" && sessionStorage.getItem("showWelcomeSplash") === "true";
+
+  // Only block with splash if user just logged in; otherwise open instantly
+  const [checking, setChecking] = useState(isFirstLogin);
+  const [isValid, setIsValid] = useState(Boolean(storedToken));
+  const [role, setRole] = useState(() => {
+    if (storedToken) {
+      const decoded = decodeToken(storedToken);
+      return decoded?.role || null;
+    }
+    return null;
+  });
 
   useEffect(() => {
     const startTime = Date.now();
-    const minAnimationDuration = 3000; // 3 second splash
+    const isFreshLogin = sessionStorage.getItem("showWelcomeSplash") === "true";
+    const minAnimationDuration = isFreshLogin ? 3000 : 0; // 3s ONLY for first login!
+
+    if (isFreshLogin) {
+      sessionStorage.removeItem("showWelcomeSplash");
+    }
 
     const validate = async () => {
       let token = localStorage.getItem("accessToken");
