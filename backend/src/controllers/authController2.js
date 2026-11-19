@@ -29,6 +29,124 @@ function getUserIdentifierQuery(identifier) {
   return { employeeId: identifier.toUpperCase() };
 }
 
+function getNormalizedContact(type, value) {
+  if (typeof value !== "string") return null;
+  const normalized = value.trim();
+  if (type === "mobile") return /^\d{10}$/.test(normalized) ? normalized : null;
+  if (type === "email") {
+    const email = normalized.toLowerCase();
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? email : null;
+  }
+  return null;
+}
+
+async function recordLoginFailure(userId) {
+  const now = new Date();
+  const failureWindowMs = 15 * 60 * 1000;
+  const resetWindow = {
+    $or: [
+      { $eq: [{ $ifNull: ["$loginFailureWindowStartedAt", null] }, null] },
+      { $lte: ["$loginFailureWindowStartedAt", new Date(now.getTime() - failureWindowMs)] },
+    ],
+  };
+  const failedAttempts = {
+    $cond: [
+      resetWindow,
+      1,
+      { $add: [{ $ifNull: ["$loginFailedAttempts", 0] }, 1] },
+    ],
+  };
+  const lockDurationMs = {
+    $min: [
+      failureWindowMs,
+      {
+        $multiply: [
+          30_000,
+          {
+            $pow: [
+              2,
+              { $min: [5, { $max: [0, { $subtract: [failedAttempts, 5] }] }] },
+            ],
+          },
+        ],
+      },
+    ],
+  };
+
+  return User.findOneAndUpdate(
+    { _id: userId },
+    [{
+      $set: {
+        loginFailedAttempts: failedAttempts,
+        loginFailureWindowStartedAt: {
+          $cond: [resetWindow, now, "$loginFailureWindowStartedAt"],
+        },
+        loginLockedUntil: {
+          $cond: [
+            { $gte: [failedAttempts, 5] },
+            { $add: [now, lockDurationMs] },
+            { $cond: [resetWindow, null, "$loginLockedUntil"] },
+          ],
+        },
+      },
+    }],
+    { new: true },
+  );
+}
+
+async function verifyCurrentCredential(req, res) {
+  const user = await User.findById(req.user._id);
+  if (!user) {
+    res.status(404).json({ error: "User not found" });
+    return null;
+  }
+
+  const credential = req.body.currentCredential;
+  if (typeof credential !== "string" || !credential.trim()) {
+    res.status(400).json({ error: "Enter your current password or PIN to verify this change" });
+    return null;
+  }
+  if (user.role !== "seth" && !/^\d{4}$/.test(credential)) {
+    res.status(400).json({ error: "Current PIN must be exactly 4 digits" });
+    return null;
+  }
+  if (!user.password) {
+    res.status(403).json({ error: "A password or PIN must be set before changing account contacts" });
+    return null;
+  }
+
+  if (user.loginLockedUntil && user.loginLockedUntil.getTime() > Date.now()) {
+    const retryAfterSeconds = Math.ceil((user.loginLockedUntil.getTime() - Date.now()) / 1000);
+    res.set("Retry-After", String(retryAfterSeconds));
+    res.status(429).json({ error: "Too many failed credential attempts. Please try again later." });
+    return null;
+  }
+
+  const isMatch = await bcrypt.compare(credential, user.password);
+  if (!isMatch) {
+    const updatedUser = await recordLoginFailure(user._id);
+    if (updatedUser?.loginLockedUntil && updatedUser.loginLockedUntil.getTime() > Date.now()) {
+      res.set("Retry-After", String(Math.ceil((updatedUser.loginLockedUntil.getTime() - Date.now()) / 1000)));
+      res.status(429).json({ error: "Too many failed credential attempts. Please try again later." });
+      return null;
+    }
+    res.status(401).json({ error: "Current password or PIN is incorrect" });
+    return null;
+  }
+
+  await User.updateOne(
+    { _id: user._id },
+    {
+      $set: {
+        loginFailedAttempts: 0,
+        loginFailureWindowStartedAt: null,
+        loginLockedUntil: null,
+      },
+    },
+  );
+  return user;
+}
+
 // ============================================================================
 // REGISTRATION OTP FUNCTIONS
 // ============================================================================
@@ -378,12 +496,38 @@ export const login = async (req, res) => {
       });
     }
 
+    if (user.loginLockedUntil && user.loginLockedUntil.getTime() > Date.now()) {
+      const retryAfterSeconds = Math.ceil((user.loginLockedUntil.getTime() - Date.now()) / 1000);
+      res.set("Retry-After", String(retryAfterSeconds));
+      return res.status(429).json({
+        error: "Too many failed login attempts. Please try again later.",
+      });
+    }
+
     const isMatch = await bcrypt.compare(pin, user.password);
     if (!isMatch) {
+      const updatedUser = await recordLoginFailure(user._id);
+      if (updatedUser?.loginLockedUntil && updatedUser.loginLockedUntil.getTime() > Date.now()) {
+        res.set("Retry-After", String(Math.ceil((updatedUser.loginLockedUntil.getTime() - Date.now()) / 1000)));
+        return res.status(429).json({
+          error: "Too many failed login attempts. Please try again later.",
+        });
+      }
       return res.status(401).json({
         error: user.role === "seth" ? "Incorrect password" : "Incorrect PIN",
       });
     }
+
+    await User.updateOne(
+      { _id: user._id },
+      {
+        $set: {
+          loginFailedAttempts: 0,
+          loginFailureWindowStartedAt: null,
+          loginLockedUntil: null,
+        },
+      },
+    );
 
     // Generate tokens
     const refreshToken = jwt.sign({ id: user._id }, JWT_SECRET, {
@@ -874,8 +1018,8 @@ export const getProfile = async (req, res) => {
       
       return res.json({
         ownerName: settings.ownerName || user.name,
-        email: settings.email || user.email || "",
-        phone: settings.phone || user.mobile || "",
+        email: user.email || "",
+        phone: user.mobile || "",
         businessName: settings.businessName,
         gstNumber: settings.gstNumber,
         address: settings.address,
@@ -914,6 +1058,18 @@ export const updateProfile = async (req, res) => {
     
     if (!user) {
       return res.status(404).json({ error: "User not found" });
+    }
+
+    const submittedEmail = req.body.email === undefined
+      ? user.email || ""
+      : String(req.body.email).trim().toLowerCase();
+    const submittedPhone = req.body.phone === undefined
+      ? user.mobile
+      : String(req.body.phone).trim();
+    if (submittedEmail !== (user.email || "").toLowerCase() || submittedPhone !== user.mobile) {
+      return res.status(400).json({
+        error: "Verify a new email address or phone number before saving it.",
+      });
     }
 
     if (user.role === "seth") {
@@ -974,6 +1130,151 @@ export const updateProfile = async (req, res) => {
   }
 };
 
+export const sendProfileContactOtp = async (req, res) => {
+  try {
+    const user = await verifyCurrentCredential(req, res);
+    if (!user) return;
+
+    const { type, value } = req.body;
+    const contact = getNormalizedContact(type, value);
+    if (!contact) {
+      return res.status(400).json({
+        error: type === "mobile" ? "Enter a valid 10-digit phone number" : "Enter a valid email address",
+      });
+    }
+
+    const userId = user._id.toString();
+    const field = type === "mobile" ? "mobile" : "email";
+    const existing = await User.findOne({ [field]: contact }).select("_id");
+    if (existing && existing._id.toString() !== userId) {
+      return res.status(409).json({ error: "That phone number or email is already in use" });
+    }
+
+    const recentOtp = await otpModel.findOne({
+      userId,
+      purpose: "change_contact",
+      createdAt: { $gt: new Date(Date.now() - 60 * 1000) },
+    });
+    if (recentOtp) {
+      return res.status(429).json({ error: "Please wait before requesting another verification code" });
+    }
+
+    await otpModel.deleteMany({ userId, purpose: "change_contact", type, [field]: contact });
+    const otp = crypto.randomInt(100000, 1000000).toString();
+    const otpHash = crypto.createHash("sha256").update(otp).digest("hex");
+    const otpRecord = await otpModel.create({
+      otpHash,
+      type,
+      [field]: contact,
+      purpose: "change_contact",
+      userId,
+    });
+
+    try {
+      if (type === "mobile") {
+        const result = await sendPhoneSms(
+          contact,
+          getOtpBody(otp, "Contact verification", "Use this OTP to verify your new phone number."),
+        );
+        if (!result.success) throw new Error("SMS delivery failed");
+      } else {
+        const result = await sendEmail(
+          contact,
+          "Verify your SaafHisaab email",
+          `Your email verification OTP is: ${otp}`,
+          getOtpHtml(otp),
+        );
+        if (result?.success === false) throw new Error("Email delivery failed");
+      }
+    } catch (error) {
+      await otpModel.deleteOne({ _id: otpRecord._id });
+      throw error;
+    }
+
+    return res.json({ message: `Verification code sent to your ${type === "mobile" ? "phone" : "email"}` });
+  } catch (error) {
+    console.error("Profile contact OTP Error:", error);
+    return res.status(502).json({ error: "Could not send verification code. Please try again." });
+  }
+};
+
+export const verifyProfileContactOtp = async (req, res) => {
+  try {
+    const user = await verifyCurrentCredential(req, res);
+    if (!user) return;
+
+    const { type, value, otp } = req.body;
+    const contact = getNormalizedContact(type, value);
+    if (!contact || !/^\d{6}$/.test(String(otp || ""))) {
+      return res.status(400).json({ error: "Enter a valid contact and 6-digit verification code" });
+    }
+
+    const userId = user._id.toString();
+    const field = type === "mobile" ? "mobile" : "email";
+    const otpQuery = { userId, purpose: "change_contact", type, [field]: contact };
+    const otpRecord = await otpModel.findOne(otpQuery);
+    if (!otpRecord || otpRecord.attempts >= 5) {
+      return res.status(400).json({ error: "Invalid or expired verification code" });
+    }
+    if (!otpRecord.createdAt || Date.now() - new Date(otpRecord.createdAt).getTime() > 5 * 60 * 1000) {
+      await otpModel.deleteOne({ _id: otpRecord._id });
+      return res.status(400).json({ error: "Invalid or expired verification code" });
+    }
+
+    const otpHash = crypto.createHash("sha256").update(String(otp)).digest("hex");
+    if (otpRecord.otpHash !== otpHash) {
+      const failedAttempt = await otpModel.findOneAndUpdate(
+        { _id: otpRecord._id, attempts: { $lt: 5 } },
+        { $inc: { attempts: 1 } },
+        { new: true },
+      );
+      if (failedAttempt?.attempts >= 5) {
+        await otpModel.deleteOne({ _id: otpRecord._id });
+      }
+      return res.status(400).json({ error: "Invalid or expired verification code" });
+    }
+
+    const consumedOtp = await otpModel.findOneAndDelete({ ...otpQuery, otpHash });
+    if (!consumedOtp) {
+      return res.status(400).json({ error: "Invalid or expired verification code" });
+    }
+
+    const duplicate = await User.findOne({ [field]: contact, _id: { $ne: userId } }).select("_id");
+    if (duplicate) {
+      return res.status(409).json({ error: "That phone number or email is already in use" });
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { $set: { [field]: contact } },
+      { new: true, runValidators: true },
+    );
+    if (!updatedUser) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    if (updatedUser.role === "seth") {
+      const settingsField = type === "mobile" ? "phone" : "email";
+      await Settings.findOneAndUpdate(
+        { sethId: userId },
+        { $set: { [settingsField]: contact } },
+        { upsert: true, new: true },
+      );
+    }
+
+    return res.json({
+      message: `${type === "mobile" ? "Phone number" : "Email"} verified and updated`,
+      [type === "mobile" ? "phone" : "email"]: contact,
+    });
+  } catch (error) {
+    if (error.code === 11000) {
+      return res.status(409).json({ error: "That phone number or email is already in use" });
+    }
+    console.error("Profile contact verification Error:", error);
+    return res.status(500).json({ error: "Could not verify contact. Please try again." });
+  }
+};
+
 /**
  * Change staff PIN
  * POST /api/auth/change-pin
@@ -1000,10 +1301,32 @@ export const changePassword = async (req, res) => {
       return res.status(403).json({ error: "PIN changes are only available to staff accounts" });
     }
 
+    if (user.loginLockedUntil && user.loginLockedUntil.getTime() > Date.now()) {
+      const retryAfterSeconds = Math.ceil((user.loginLockedUntil.getTime() - Date.now()) / 1000);
+      res.set("Retry-After", String(retryAfterSeconds));
+      return res.status(429).json({ error: "Too many failed PIN attempts. Please try again later." });
+    }
+
     const isMatch = await bcrypt.compare(oldPin, user.password);
     if (!isMatch) {
+      const updatedUser = await recordLoginFailure(user._id);
+      if (updatedUser?.loginLockedUntil && updatedUser.loginLockedUntil.getTime() > Date.now()) {
+        res.set("Retry-After", String(Math.ceil((updatedUser.loginLockedUntil.getTime() - Date.now()) / 1000)));
+        return res.status(429).json({ error: "Too many failed PIN attempts. Please try again later." });
+      }
       return res.status(401).json({ error: "Incorrect current PIN" });
     }
+
+    await User.updateOne(
+      { _id: user._id },
+      {
+        $set: {
+          loginFailedAttempts: 0,
+          loginFailureWindowStartedAt: null,
+          loginLockedUntil: null,
+        },
+      },
+    );
 
     const salt = await bcrypt.genSalt(10);
     user.password = await bcrypt.hash(newPin, salt);

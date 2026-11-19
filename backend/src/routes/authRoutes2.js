@@ -72,6 +72,8 @@ router.get("/profile", protect, authController.getProfile);
 
 // Update user profile
 router.patch("/profile", protect, authController.updateProfile);
+router.post("/profile/contact-otp", protect, authController.sendProfileContactOtp);
+router.post("/profile/verify-contact", protect, authController.verifyProfileContactOtp);
 router.post(
   "/profile/image",
   protect,

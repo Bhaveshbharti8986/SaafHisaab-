@@ -20,12 +20,27 @@ export default function Settings() {
   const [pinForm, setPinForm] = useState({ oldPin: "", newPin: "", confirmPin: "" });
   const [pinSubmitting, setPinSubmitting] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [contactChallenge, setContactChallenge] = useState(null);
+  const [contactBusy, setContactBusy] = useState(false);
+  const [contactCredential, setContactCredential] = useState("");
+  const savedContacts = useRef({ email: "", phone: "" });
   const profileImageInput = useRef(null);
 
   const isSeth = profile.role === "seth";
   const isMunsi = profile.role === "munsi";
   const isLabour = profile.role === "labour";
   const isRestricted = isMunsi || isLabour;
+  const hasPendingContactChange = ["phone", "email"].some(field => {
+    const current = field === "email"
+      ? (profile[field] || "").trim().toLowerCase()
+      : (profile[field] || "").trim();
+    return current !== savedContacts.current[field];
+  });
+  const isContactChallengeActive = contactChallenge && (
+    contactChallenge.field === "email"
+      ? (profile.email || "").trim().toLowerCase() === contactChallenge.value
+      : (profile.phone || "").trim() === contactChallenge.value
+  );
 
   useEffect(() => {
     let active = true;
@@ -33,7 +48,13 @@ export default function Settings() {
     setProfileLoadError(false);
     api.get("/auth/profile")
       .then(s => {
-        if (active && s) setProfile(s);
+        if (active && s) {
+          setProfile(s);
+          savedContacts.current = {
+            email: (s.email || "").trim().toLowerCase(),
+            phone: (s.phone || "").trim(),
+          };
+        }
       })
       .catch(err => {
         if (!active) return;
@@ -51,11 +72,89 @@ export default function Settings() {
 
   async function handleSave(e) {
     e.preventDefault();
+    const changedContact = ["phone", "email"].find(field => {
+      const current = field === "email"
+        ? (profile[field] || "").trim().toLowerCase()
+        : (profile[field] || "").trim();
+      return current !== savedContacts.current[field];
+    });
+
+    if (changedContact) {
+      if (!contactCredential.trim()) {
+        showToast("error", `Enter your current ${isRestricted ? "PIN" : "password"} to verify this contact change`);
+        return;
+      }
+      const value = changedContact === "email"
+        ? (profile.email || "").trim().toLowerCase()
+        : (profile.phone || "").trim();
+      const type = changedContact === "email" ? "email" : "mobile";
+      setContactBusy(true);
+      try {
+        if (contactChallenge?.field !== changedContact || contactChallenge.value !== value) {
+          await api.post("/auth/profile/contact-otp", {
+            type,
+            value,
+            currentCredential: contactCredential,
+          });
+          setContactChallenge({ field: changedContact, value, otp: "" });
+          setContactCredential("");
+          showToast("success", `Verification code sent to your ${changedContact}`);
+          return;
+        }
+
+        if (!/^\d{6}$/.test(contactChallenge.otp)) {
+          showToast("error", "Enter the 6-digit verification code");
+          return;
+        }
+
+        await api.post("/auth/profile/verify-contact", {
+          type,
+          value,
+          otp: contactChallenge.otp,
+          currentCredential: contactCredential,
+        });
+        savedContacts.current[changedContact] = value;
+        setProfile(current => ({ ...current, [changedContact]: value }));
+        setContactChallenge(null);
+        setContactCredential("");
+        showToast("success", `${changedContact === "email" ? "Email" : "Phone number"} verified. Save again to apply other profile changes.`);
+      } catch (err) {
+        showToast("error", err.message || "Contact verification failed");
+      } finally {
+        setContactBusy(false);
+      }
+      return;
+    }
+
     try {
       await api.patch("/auth/profile", profile);
+      setContactChallenge(null);
       showToast("success", "Profile updated successfully!");
     } catch (err) {
       showToast("error", err.message || "Failed to update profile");
+    }
+  }
+
+  async function handleResendContactOtp() {
+    if (!contactChallenge) return;
+    if (!contactCredential.trim()) {
+      showToast("error", `Enter your current ${isRestricted ? "PIN" : "password"} to resend the code`);
+      return;
+    }
+    setContactBusy(true);
+    try {
+      await api.post("/auth/profile/contact-otp", {
+        type: contactChallenge.field === "email" ? "email" : "mobile",
+        value: contactChallenge.value,
+        currentCredential: contactCredential,
+      });
+      setContactChallenge(current => current ? { ...current, otp: "" } : current);
+      setContactCredential("");
+      showToast("success", "Verification code sent");
+    } catch (err) {
+      showToast("error", err.message || "Could not resend verification code");
+    } finally {
+      setContactBusy(false);
     }
   }
 
@@ -238,6 +337,54 @@ export default function Settings() {
                     </div>
                   </div>
                 )}
+                {isContactChallengeActive && (
+                  <div className="space-y-3 rounded-2xl border border-blue-200 bg-blue-50 p-4">
+                    <p className="text-sm font-semibold text-slate-800">
+                      Enter the verification code sent to {contactChallenge.value}
+                    </p>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      autoComplete="one-time-code"
+                      maxLength={6}
+                      value={contactChallenge.otp}
+                      onChange={event => setContactChallenge(current => ({
+                        ...current,
+                        otp: event.target.value.replace(/\D/g, "").slice(0, 6),
+                      }))}
+                      className="min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 text-center text-lg font-bold tracking-[0.4em] text-slate-900"
+                      placeholder="6-digit code"
+                      aria-label="Contact verification code"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleResendContactOtp}
+                      disabled={contactBusy}
+                      className="min-h-11 rounded-xl px-3 text-sm font-bold text-blue-700 disabled:opacity-60"
+                    >
+                      Resend code
+                    </button>
+                  </div>
+                )}
+                {hasPendingContactChange && (
+                  <div className="space-y-2 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                    <label className="text-sm font-bold text-slate-700">
+                      Current {isRestricted ? "4-digit PIN" : "password"}
+                    </label>
+                    <input
+                      type="password"
+                      inputMode={isRestricted ? "numeric" : "text"}
+                      maxLength={isRestricted ? 4 : undefined}
+                      autoComplete="current-password"
+                      value={contactCredential}
+                      onChange={event => setContactCredential(
+                        isRestricted ? event.target.value.replace(/\D/g, "").slice(0, 4) : event.target.value,
+                      )}
+                      className="min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 text-slate-900"
+                      placeholder={isRestricted ? "Enter current PIN" : "Enter current password"}
+                    />
+                  </div>
+                )}
               </div>
             </section>
 
@@ -322,8 +469,8 @@ export default function Settings() {
               </section>
             )}
 
-            <button type="submit" className="w-full bg-blue-600 text-white rounded-2xl py-3.5 font-bold shadow-md shadow-blue-600/20 active:scale-[0.98] transition-all">
-              Save Profile
+            <button type="submit" disabled={contactBusy} className="w-full bg-blue-600 text-white rounded-2xl py-3.5 font-bold shadow-md shadow-blue-600/20 active:scale-[0.98] transition-all disabled:opacity-60">
+              {contactBusy ? "Please wait..." : isContactChallengeActive ? "Verify Contact" : "Save Profile"}
             </button>
           </form>
         )}

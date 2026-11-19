@@ -31,6 +31,18 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: null
   },
+  loginFailedAttempts: {
+    type: Number,
+    default: 0
+  },
+  loginFailureWindowStartedAt: {
+    type: Date,
+    default: null
+  },
+  loginLockedUntil: {
+    type: Date,
+    default: null
+  },
   role: {
     type: String,
     enum: ["seth", "munsi", "labour"],

@@ -128,6 +128,8 @@ Content-Type: application/json
 }
 ```
 
+After five incorrect password/PIN attempts within a 15-minute window, that account is temporarily locked with an escalating delay (starting at 30 seconds and capped at 15 minutes). This applies to login and authenticated PIN changes. Locked requests respond with HTTP 429 and a `Retry-After` header.
+
 ### Login Endpoints
 
 #### 4. Login
@@ -339,18 +341,51 @@ Content-Type: application/json
 
 {
   "ownerName": "Rajesh Kumar Updated",
-  "email": "seth.updated@example.com",
+  "email": "seth@example.com",
   "phone": "9876543210",
   "businessName": "Rajesh Traders Updated",
   "address": "456 New Market, Mandi"
 }
 ```
 
-**Response:**
+Email and phone must match the account's currently verified contacts. To change one, request and verify a code first:
+
+#### 12. Request Profile Contact Verification
+```http
+POST /api/auth/profile/contact-otp
+Authorization: Bearer <accessToken>
+Content-Type: application/json
+
+{
+  "type": "email",
+  "value": "new-address@example.com",
+  "currentCredential": "your current password or PIN"
+}
+```
+
+For a phone number use `"type": "mobile"` and a 10-digit `"value"`. Each request requires the current account password (Seth) or 4-digit PIN (staff) as recent reauthentication. Codes expire after five minutes, allow at most five verification attempts, and can be requested once per minute.
+
+#### 13. Verify and Apply Profile Contact
+```http
+POST /api/auth/profile/verify-contact
+Authorization: Bearer <accessToken>
+Content-Type: application/json
+
+{
+  "type": "email",
+  "value": "new-address@example.com",
+  "otp": "123456",
+  "currentCredential": "your current password or PIN"
+}
+```
+
+The verified contact is updated on the account and becomes available for recovery. The profile update endpoint can then be used for the remaining profile fields.
+
+**Profile update response:**
 ```json
 {
   "ownerName": "Rajesh Kumar Updated",
-  "email": "seth.updated@example.com",
+  "email": "seth@example.com",
   "phone": "9876543210",
   "businessName": "Rajesh Traders Updated",
   "gstNumber": "29ABCDE1234F1Z5",
@@ -362,7 +397,7 @@ Content-Type: application/json
 }
 ```
 
-#### 12. Change Password
+#### 14. Change Password
 ```http
 POST /api/auth/change-password
 Authorization: Bearer your_access_token_here
@@ -384,7 +419,7 @@ Content-Type: application/json
 
 ### Logout Endpoints (Protected)
 
-#### 13. Logout from Current Device
+#### 15. Logout from Current Device
 ```http
 POST /api/auth/logout
 Authorization: Bearer your_access_token_here
@@ -397,7 +432,7 @@ Authorization: Bearer your_access_token_here
 }
 ```
 
-#### 14. Logout from All Devices
+#### 16. Logout from All Devices
 ```http
 POST /api/auth/logout-all
 Authorization: Bearer your_access_token_here
