@@ -13,6 +13,12 @@ import { getOtpBody } from "../utils/phoneOtp.js";
 import { validateMandiSettings } from "../utils/validateMandiSettings.js";
 const JWT_SECRET = config.JWT_SECRET;
 
+function clearRefreshTokenCookie(res) {
+  const options = { httpOnly: true, secure: true, sameSite: "none" };
+  res.clearCookie("refreshToken", { ...options, path: "/" });
+  res.clearCookie("refreshToken", { ...options, path: "/api/auth" });
+}
+
 function getUserIdentifierQuery(identifier) {
   if (identifier.includes("@")) {
     return { email: identifier.toLowerCase() };
@@ -311,7 +317,8 @@ export const registerSeth = async (req, res) => {
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: true,
-sameSite: "none",
+      sameSite: "none",
+      path: "/",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -409,7 +416,8 @@ export const login = async (req, res) => {
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: true,
-sameSite: "none",
+      sameSite: "none",
+      path: "/",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -499,7 +507,8 @@ export const refreshToken = async (req, res) => {
     res.cookie("refreshToken", newRefreshToken, {
       httpOnly: true,
       secure: true,
-sameSite: "none",
+      sameSite: "none",
+      path: "/",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -814,24 +823,12 @@ export const resetPassword = async (req, res) => {
  */
 export const logout = async (req, res) => {
   try {
-    const refreshToken = req.cookies.refreshToken;
-    
-    if (!refreshToken) {
-      return res.status(401).json({ message: "No refresh token found" });
-    }
+    await Session.deleteOne({
+      _id: req.sessionId,
+      userId: req.user._id.toString(),
+    });
 
-    const refreshTokenHash = crypto
-      .createHash("sha256")
-      .update(refreshToken)
-      .digest("hex");
-
-    const result = await Session.deleteOne({ refreshTokenHash });
-
-    if (result.deletedCount === 0) {
-      return res.status(404).json({ message: "Session not found" });
-    }
-
-    res.clearCookie("refreshToken");
+    clearRefreshTokenCookie(res);
     res.status(200).json({ message: "Logout successful" });
   } catch (error) {
     console.error("Logout Error:", error);
@@ -845,20 +842,9 @@ export const logout = async (req, res) => {
  */
 export const logoutAll = async (req, res) => {
   try {
-    const refreshToken = req.cookies.refreshToken;
-    
-    if (!refreshToken) {
-      return res.status(401).json({ message: "Refresh token is required" });
-    }
+    await Session.deleteMany({ userId: req.user._id.toString() });
 
-    const decoded = jwt.verify(refreshToken, JWT_SECRET);
-    const result = await Session.deleteMany({ userId: decoded.id });
-
-    if (result.deletedCount === 0) {
-      return res.status(404).json({ message: "No active sessions found" });
-    }
-
-    res.clearCookie("refreshToken");
+    clearRefreshTokenCookie(res);
     res.status(200).json({ message: "Logged out from all devices successfully" });
   } catch (error) {
     console.error("Logout All Error:", error);

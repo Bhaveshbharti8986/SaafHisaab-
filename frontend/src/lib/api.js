@@ -35,8 +35,9 @@ async function request(method, path, body) {
       credentials: "include", // Important for httpOnly cookies
     });
 
-    // ✅ On 401: try to silently refresh token once, then retry
-    if (res.status === 401 && !path.startsWith("/auth")) {
+    // Logout may be triggered after its short-lived access token has expired.
+    const isLogoutRequest = path === "/auth/logout" || path === "/auth/logout-all";
+    if (res.status === 401 && (!path.startsWith("/auth") || isLogoutRequest)) {
       if (!isRefreshing) {
         isRefreshing = true;
         const newToken = await tryRefreshToken();

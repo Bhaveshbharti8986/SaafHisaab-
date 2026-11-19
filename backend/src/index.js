@@ -29,6 +29,7 @@ const PORT = config.PORT || 8080;
 const allowedOrigins = [
   "https://saaf-hisaab.vercel.app",
   "http://localhost:5173",
+  "http://127.0.0.1:5173",
 ];
 
 app.use(cors({

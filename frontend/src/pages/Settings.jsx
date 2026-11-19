@@ -93,7 +93,10 @@ export default function Settings() {
     try {
       await api.post("/auth/logout");
     } catch (err) {
-      showToast("error", err.message || "Could not log out. Check your connection and try again.");
+      const message = err instanceof TypeError
+        ? "Could not log out. Check your connection and try again."
+        : err.message || "Could not log out. Check your connection and try again.";
+      showToast("error", message);
       return;
     }
     localStorage.removeItem("accessToken"); // ✅ Fixed: was "token"
@@ -106,7 +109,10 @@ export default function Settings() {
       await api.post("/auth/logout-all");
       showToast("success", "Logged out from all devices securely.");
     } catch (err) {
-      showToast("error", err.message || "Logout from all devices failed");
+      const message = err instanceof TypeError
+        ? "Could not log out from all devices. Check your connection and try again."
+        : err.message || "Logout from all devices failed";
+      showToast("error", message);
       return;
     }
     localStorage.removeItem("accessToken"); // ✅ Fixed: was "token"

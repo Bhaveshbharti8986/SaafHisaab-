@@ -88,7 +88,7 @@ export default function AppLayout({ children, title, showBack, munsiMode }) {
     } catch (err) {
       console.error(err);
     }
-    localStorage.removeItem("token");
+    localStorage.removeItem("accessToken");
     sessionStorage.removeItem("unlocked");
     window.location.href = "/";
   }
