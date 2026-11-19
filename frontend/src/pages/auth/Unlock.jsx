@@ -1,34 +1,35 @@
 import React, { useState } from "react";
-import { Lock, LogOut } from "lucide-react";
-import { motion } from "framer-motion";
+import { Delete, LogOut } from "lucide-react";
 import { api } from "../../lib/api.js";
 import { showToast } from "../../lib/toast.js";
 import { decodeToken } from "../../lib/jwt.js";
+import { CharacterForRole } from "../../components/auth/characters.jsx";
+
+const keypad = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "", "0", "backspace"];
 
 export default function Unlock() {
   const [pin, setPin] = useState("");
   const [loading, setLoading] = useState(false);
 
   const token = localStorage.getItem("accessToken");
-  let name = "User";
-  if (token) {
-    const decoded = decodeToken(token);
-    name = decoded?.name || "User";
-  }
+  const decoded = token ? decodeToken(token) : null;
+  const name = decoded?.name || "User";
+  const tokenRole = decoded?.role;
+  const characterRole = tokenRole === "munsi" || tokenRole === "munshi"
+    ? "munshi"
+    : tokenRole === "labour"
+      ? "labour"
+      : "seth";
 
-  const handleUnlock = async (e) => {
-    e.preventDefault();
+  const handleUnlock = async (event) => {
+    event.preventDefault();
     if (pin.length !== 4) return showToast("error", "PIN must be 4 digits");
-    
+
     setLoading(true);
     try {
-      // The api interceptor automatically attaches the current token
       const res = await api.post("/auth/unlock", { pin });
-      
-      // Token Rotation: Save the brand new token
       localStorage.setItem("accessToken", res.accessToken);
       sessionStorage.setItem("unlocked", "true");
-      
       showToast("success", "Unlocked successfully!");
       window.location.href = "/";
     } catch (err) {
@@ -47,80 +48,70 @@ export default function Unlock() {
     window.location.href = "/";
   };
 
+  const pressKey = (key) => {
+    if (key === "backspace") {
+      setPin((current) => current.slice(0, -1));
+    } else {
+      setPin((current) => current.length < 4 ? `${current}${key}` : current);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center px-6 py-12 pb-safe relative overflow-hidden">
-      <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-blue-700 to-blue-900 rounded-b-[3rem] -z-10 shadow-xl"></div>
-      
-      <div className="mb-8 text-center">
-        <div className="w-20 h-20 bg-white rounded-3xl shadow-xl mx-auto flex items-center justify-center mb-6">
-          <Lock size={40} className="text-blue-600" />
+    <main className="mx-auto flex min-h-screen w-full max-w-[480px] flex-col bg-gradient-to-br from-blue-950 via-blue-900 to-slate-950 px-6 pb-8 pt-12 font-sans text-white">
+      <div className="mb-6 flex justify-center">
+        <div className="flex h-28 w-28 items-center justify-center overflow-hidden rounded-[28px] bg-white shadow-xl">
+          <CharacterForRole role={characterRole} className="h-28 w-28" />
         </div>
-        <h1 className="text-3xl font-black text-white mb-2 tracking-tight">Welcome back</h1>
-        <p className="text-blue-200 text-sm font-medium">{name}</p>
       </div>
+      <header className="mb-7 text-center">
+        <p className="text-sm font-bold text-blue-200">Welcome back</p>
+        <h1 className="mt-1 truncate text-3xl font-extrabold">{name}</h1>
+      </header>
 
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-white rounded-[2rem] shadow-2xl p-6 sm:p-8 w-full max-w-sm mx-auto relative z-10"
+      <form onSubmit={handleUnlock} className="mx-auto w-full max-w-[360px]">
+        <div className="mb-6 flex justify-center gap-4" aria-label={`${pin.length} of 4 PIN digits entered`}>
+          {[0, 1, 2, 3].map((index) => (
+            <span
+              key={index}
+              className={`h-4 w-4 rounded-full border-2 border-blue-200 ${index < pin.length ? "bg-white" : "bg-transparent"}`}
+            />
+          ))}
+        </div>
+
+        <div className="grid grid-cols-3 gap-3">
+          {keypad.map((key, index) => (
+            key ? (
+              <button
+                key={key}
+                type="button"
+                onClick={() => pressKey(key)}
+                aria-label={key === "backspace" ? "Delete last digit" : `Enter ${key}`}
+                className="flex min-h-14 items-center justify-center rounded-2xl border border-white/20 bg-white/10 text-xl font-bold text-white transition hover:bg-white/20 active:scale-95"
+              >
+                {key === "backspace" ? <Delete size={21} /> : key}
+              </button>
+            ) : (
+              <span key={`empty-${index}`} aria-hidden="true" />
+            )
+          ))}
+        </div>
+
+        <button
+          type="submit"
+          disabled={loading || pin.length !== 4}
+          className="mt-5 flex min-h-12 w-full items-center justify-center rounded-2xl bg-white px-4 py-3 text-sm font-extrabold text-blue-900 shadow-lg transition active:scale-[.99] disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {loading ? "Verifying..." : "Unlock App"}
+        </button>
+      </form>
+
+      <button
+        type="button"
+        onClick={handleLogout}
+        className="mx-auto mt-7 flex min-h-11 items-center justify-center gap-2 px-4 text-sm font-bold text-blue-100"
       >
-        <form onSubmit={handleUnlock} className="space-y-6">
-          <div>
-            <h2 className="text-xl font-bold text-gray-900 text-center">Unlock App</h2>
-            <p className="text-gray-500 text-sm mt-1 text-center">Enter your 4-digit PIN</p>
-          </div>
-
-          <div>
-            <div className="relative">
-              <input
-                type="password"
-                inputMode="numeric"
-                maxLength={4}
-                value={pin}
-                onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
-                className="block w-full px-4 py-4 bg-gray-50 border border-gray-200 rounded-2xl text-center tracking-[1em] text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all font-black text-4xl"
-                placeholder="••••"
-                autoFocus
-                required
-              />
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading || pin.length !== 4}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-4 rounded-2xl transition-all shadow-lg shadow-blue-600/30 active:scale-95 disabled:opacity-50"
-          >
-            {loading ? "Verifying..." : "Unlock"}
-          </button>
-        </form>
-      </motion.div>
-
-      <div className="mt-12 space-y-4 text-center relative z-10 flex flex-col items-center">
-        <button 
-          onClick={handleLogout}
-          className="text-gray-500 hover:text-red-600 text-sm font-bold flex items-center justify-center gap-2 w-full transition-colors"
-        >
-          <LogOut size={16} /> Log Out / Forgot PIN
-        </button>
-        
-        <button 
-          className="bg-blue-100 text-blue-900 hover:bg-blue-200 text-xs font-bold uppercase tracking-wider px-6 py-3 rounded-full shadow-sm transition-colors mt-4 inline-block"
-          onClick={async (e) => {
-            e.preventDefault();
-            try {
-              const res = await api.post("/auth/seth-bypass");
-              localStorage.setItem("accessToken", res.accessToken);
-              sessionStorage.setItem("unlocked", "true");
-              window.location.href = "/";
-            } catch (err) {
-              showToast("error", "Admin bypass failed");
-            }
-          }}
-        >
-          Developer Admin Bypass
-        </button>
-      </div>
-    </div>
+        <LogOut size={17} /> Log out / Forgot PIN
+      </button>
+    </main>
   );
 }

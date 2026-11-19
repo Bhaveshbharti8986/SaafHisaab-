@@ -1,78 +1,76 @@
 import React, { useState, useEffect, useRef } from "react";
 
-export default function OtpInput({ length = 6, onComplete, value = "" }) {
+export default function OtpInput({ length = 6, onComplete, onChange, value, accent = "seth" }) {
   const [otp, setOtp] = useState(new Array(length).fill(""));
   const inputRefs = useRef([]);
+  const accentClasses = {
+    seth: "focus:border-seth focus:ring-blue-500/15",
+    munshi: "focus:border-munshi focus:ring-teal-600/15",
+    labour: "focus:border-labour focus:ring-orange-600/15",
+  };
+  const focusClass = accentClasses[accent] || accentClasses.seth;
 
   useEffect(() => {
-    if (value) {
-      const valueArray = value.split("").slice(0, length);
-      const newOtp = [...otp];
-      valueArray.forEach((char, index) => {
-        newOtp[index] = char;
-      });
-      setOtp(newOtp);
+    if (value !== undefined) {
+      setOtp([...value.split("").slice(0, length), ...new Array(length).fill("")].slice(0, length));
     }
   }, [value, length]);
 
   const handleChange = (e, index) => {
-    const val = e.target.value;
-    if (isNaN(val)) return;
+    const val = e.target.value.replace(/\D/g, "").slice(-1);
 
-    const newOtp = [...otp];
+    const newOtp = value === undefined ? [...otp] : [...value.split("").slice(0, length), ...new Array(length).fill("")].slice(0, length);
     newOtp[index] = val;
     setOtp(newOtp);
+    const otpValue = newOtp.join("");
+    onChange?.(otpValue);
 
     // Move to next input
     if (val && index < length - 1) {
-      inputRefs.current[index + 1].focus();
+      inputRefs.current[index + 1]?.focus();
     }
 
     // Check if OTP is complete
-    const otpValue = newOtp.join("");
-    if (otpValue.length === length) {
-      onComplete(otpValue);
+    if (newOtp.every(Boolean)) {
+      onComplete?.(otpValue);
     }
   };
 
   const handleKeyDown = (e, index) => {
     if (e.key === "Backspace" && !otp[index] && index > 0) {
-      inputRefs.current[index - 1].focus();
+      inputRefs.current[index - 1]?.focus();
     }
   };
 
   const handlePaste = (e) => {
     e.preventDefault();
-    const pastedData = e.clipboardData.getData("text").slice(0, length);
+    const pastedData = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, length);
     if (!/^\d+$/.test(pastedData)) return;
 
-    const newOtp = [...otp];
-    pastedData.split("").forEach((char, index) => {
-      if (index < length) {
-        newOtp[index] = char;
-      }
-    });
+    const newOtp = [...pastedData, ...new Array(length).fill("")].slice(0, length);
     setOtp(newOtp);
+    onChange?.(pastedData);
 
     if (pastedData.length === length) {
-      onComplete(pastedData);
+      onComplete?.(pastedData);
     }
   };
 
   return (
-    <div className="flex gap-2 justify-center">
+    <div className="flex justify-center gap-1.5" role="group" aria-label={`${length}-digit verification code`}>
       {otp.map((digit, index) => (
         <input
           key={index}
           ref={(el) => (inputRefs.current[index] = el)}
+          aria-label={`OTP digit ${index + 1}`}
           type="text"
           inputMode="numeric"
           maxLength={1}
-          value={digit}
+          value={value === undefined ? digit : value[index] || ""}
           onChange={(e) => handleChange(e, index)}
           onKeyDown={(e) => handleKeyDown(e, index)}
           onPaste={handlePaste}
-          className="w-12 h-14 text-center text-2xl font-bold bg-slate-50 border-2 border-slate-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500 focus:bg-white transition-all"
+          className={`h-14 min-w-0 max-w-12 flex-1 rounded-2xl border-[1.5px] border-slate-400 bg-white text-center text-2xl font-extrabold text-slate-900 shadow-field outline-none transition focus:ring-4 ${focusClass}`}
         />
       ))}
     </div>
