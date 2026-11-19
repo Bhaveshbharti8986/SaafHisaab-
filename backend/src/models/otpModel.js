@@ -7,7 +7,8 @@ import { type } from "os";
      type: { type: String, enum:["email", "mobile"] ,required:true},
      email: { type: String},
      mobile: { type: String },
-     purpose:{type:String,enum:["register","login","forgot_password"]},
+     purpose:{type:String,enum:["register","login","forgot_password","first_login_pin"]},
+     attempts: { type: Number, default: 0 },
       createdAt: {
       type: Date,
       default: Date.now,

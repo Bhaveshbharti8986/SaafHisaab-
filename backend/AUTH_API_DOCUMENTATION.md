@@ -74,6 +74,7 @@ Content-Type: application/json
   "demoOtp": "654321"
 }
 ```
+`demoOtp` is included only outside production. In production, the code is delivered through the configured SMS provider.
 
 #### 2. Send Email OTP for Registration
 ```http
@@ -92,6 +93,7 @@ Content-Type: application/json
   "demoOtp": "123456"
 }
 ```
+`demoOtp` is included only outside production. In production, the code is delivered to the configured email address.
 
 #### 3. Register Seth (Complete Registration)
 ```http
@@ -181,6 +183,38 @@ Cookie: refreshToken=your_refresh_token_here
 }
 ```
 
+### First-Time Staff PIN Setup
+
+Staff accounts must verify the phone number on their account before creating a PIN. The OTP expires after five minutes, is single-use, allows up to five attempts, and can be requested once per minute.
+
+Phone OTP delivery uses Fast2SMS. Configure `FAST2SMS_API_KEY` on the backend. Production also requires the approved `FAST2SMS_SENDER_ID` and `FAST2SMS_TEMPLATE_ID`; the registered DLT template must match the OTP SMS body. Development uses Fast2SMS Quick Route. OTP values are returned in API responses only outside production.
+
+#### Send the setup OTP
+```http
+POST /api/auth/first-login/pin-otp
+Content-Type: application/json
+
+{
+  "employeeId": "EMP-S-2026-ABC123"
+}
+```
+
+The server sends the OTP to the account's registered phone. Development responses may include `demoOtp`; production responses do not.
+
+#### Set the PIN
+```http
+POST /api/auth/set-pin
+Content-Type: application/json
+
+{
+  "employeeId": "EMP-S-2026-ABC123",
+  "otp": "654321",
+  "pin": "1234"
+}
+```
+
+This endpoint only sets a PIN when the staff account has no PIN and the submitted OTP matches a recent code sent to its registered phone.
+
 ### Forgot Password Endpoints
 
 #### 6. Send OTP to Phone for Password Reset
@@ -200,6 +234,7 @@ Content-Type: application/json
   "demoOtp": "654321"
 }
 ```
+`demoOtp` is included only outside production. In production, the code is delivered through the configured SMS provider.
 
 #### 7. Send OTP to Email for Password Reset
 ```http
@@ -218,6 +253,7 @@ Content-Type: application/json
   "demoOtp": "123456"
 }
 ```
+`demoOtp` is included only outside production. In production, the code is delivered to the configured email address.
 
 #### 8. Verify OTP for Password Reset (Optional)
 ```http
@@ -520,21 +556,26 @@ access_token: (will be set automatically during login)
 JWT_SECRET=your_super_secret_jwt_key_here
 NODE_ENV=production
 MONGO_URI=your_mongodb_connection_string
+CLOUDINARY_URL=cloudinary://your_api_key:your_api_secret@your_cloud_name
+FAST2SMS_API_KEY=your_fast2sms_api_key
+FAST2SMS_SENDER_ID=ABCDEF
+FAST2SMS_TEMPLATE_ID=1234567890123456789
 ```
 
-### 2. Remove Demo OTPs
-In production, replace demo OTPs with actual SMS/Email services:
+### Profile Image Upload
+Authenticated users can upload a JPG, PNG, or WebP profile image (maximum 5 MB):
 
-```javascript
-// Remove these lines in production:
-demoOtp: otp // from response
+```http
+POST /api/auth/profile/image
+Content-Type: multipart/form-data
 
-// Add actual SMS sending:
-await sendSMS(phone, `Your OTP is: ${otp}`);
-
-// Add actual Email sending:
-await sendEmail(email, "OTP", `Your OTP is: ${otp}`);
+image: <file>
 ```
+
+Configure `CLOUDINARY_URL` on the backend (or use the separate `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, and `CLOUDINARY_API_SECRET` variables). Cloudinary is used only for profile photos; app icons and character artwork remain static frontend assets. The API signs uploads server-side; never expose Cloudinary credentials to the frontend or commit them to source control.
+
+### 2. SMS and OTP delivery
+Phone OTP routes send through Fast2SMS. Production requires the API key, an approved DLT sender ID, and the matching registered template ID. Never put these credentials in frontend configuration or source control. The API does not include OTP values in production responses.
 
 ### 3. Configure CORS
 ```javascript

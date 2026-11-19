@@ -22,8 +22,13 @@ export const protect = async (req, res, next) => {
         return res.status(401).json({ error: "Not authorized. Account has been deleted or revoked." });
       }
 
+      if (!decoded.sessionId) {
+        return res.status(401).json({ error: "Not authorized. Session is invalid." });
+      }
+
       // Verify session exists and is valid
-      const session = await Session.findOne({ 
+      const session = await Session.findOne({
+        _id: decoded.sessionId,
         userId: user._id.toString(),
         revoked: false
       });

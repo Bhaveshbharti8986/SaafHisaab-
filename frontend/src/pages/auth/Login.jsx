@@ -57,6 +57,10 @@ export default function Login() {
   const [employeeId, setEmployeeId] = useState("");
   const [pin, setPin] = useState("");
   const [confirmPin, setConfirmPin] = useState("");
+  const [firstLoginOtp, setFirstLoginOtp] = useState("");
+  const [firstLoginOtpSent, setFirstLoginOtpSent] = useState(false);
+  const [firstLoginMaskedPhone, setFirstLoginMaskedPhone] = useState("");
+  const [firstLoginDemoOtp, setFirstLoginDemoOtp] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
@@ -91,6 +95,10 @@ export default function Login() {
         setStep(3);
         setPin("");
         setConfirmPin("");
+        setFirstLoginOtp("");
+        setFirstLoginOtpSent(false);
+        setFirstLoginMaskedPhone("");
+        setFirstLoginDemoOtp("");
       }
       if (token) {
         localStorage.setItem("accessToken", token);
@@ -106,18 +114,40 @@ export default function Login() {
     }
   };
 
+  const handleSendFirstLoginOtp = async () => {
+    setLoading(true);
+    try {
+      const response = await api.post("/auth/first-login/pin-otp", { employeeId });
+      setFirstLoginMaskedPhone(response.maskedPhone || "");
+      setFirstLoginDemoOtp(response.demoOtp ? String(response.demoOtp) : "");
+      setFirstLoginOtp("");
+      setFirstLoginOtpSent(true);
+      showToast("success", response.message || "Verification code sent");
+    } catch (err) {
+      showToast("error", err.message || "Failed to send verification code");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSetPin = async (event) => {
     event.preventDefault();
+    if (!/^\d{6}$/.test(firstLoginOtp)) {
+      return showToast("error", "Enter the 6-digit verification code");
+    }
     if (pin.length !== 4) return showToast("error", "PIN must be 4 digits");
     if (pin !== confirmPin) return showToast("error", "PINs do not match");
 
     setLoading(true);
     try {
-      await api.post("/auth/set-pin", { employeeId, pin });
+      await api.post("/auth/set-pin", { employeeId, otp: firstLoginOtp, pin });
       showToast("success", "PIN set successfully!");
       setStep(1);
       setPin("");
       setConfirmPin("");
+      setFirstLoginOtp("");
+      setFirstLoginOtpSent(false);
+      setFirstLoginDemoOtp("");
     } catch (err) {
       showToast("error", err.message || "Failed to set PIN");
     } finally {
@@ -402,17 +432,55 @@ export default function Login() {
               value={employeeId}
               readOnly
             />
-            <div>
-              <p className="mb-1 text-[13px] font-bold text-slate-700">New PIN</p>
-              <PinBoxes value={pin} onChange={setPin} accent={role} />
-            </div>
-            <div>
-              <p className="mb-1 text-[13px] font-bold text-slate-700">Confirm PIN</p>
-              <PinBoxes value={confirmPin} onChange={setConfirmPin} accent={role} />
-            </div>
-            <button type="submit" disabled={loading} className={`${buttonBase} ${accent.button}`}>
-              {loading ? "Setting PIN..." : "Set PIN"} <ArrowRight size={17} />
-            </button>
+            {!firstLoginOtpSent ? (
+              <>
+                <p className="rounded-2xl bg-slate-50 p-3 text-sm text-slate-700">
+                  Verify the phone number registered to your staff account before setting your PIN.
+                </p>
+                <button
+                  type="button"
+                  onClick={handleSendFirstLoginOtp}
+                  disabled={loading}
+                  className={`${buttonBase} ${accent.button}`}
+                >
+                  {loading ? "Sending code..." : "Send verification code"} <ArrowRight size={17} />
+                </button>
+              </>
+            ) : (
+              <>
+                <p className="rounded-2xl bg-slate-50 p-3 text-sm text-slate-700">
+                  Enter the code sent to {firstLoginMaskedPhone}.
+                </p>
+                {firstLoginDemoOtp && (
+                  <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-center text-sm font-bold text-emerald-800">
+                    Demo OTP: {firstLoginDemoOtp}
+                  </p>
+                )}
+                <div>
+                  <p className="mb-1 text-[13px] font-bold text-slate-700">Verification code</p>
+                  <OtpInput length={6} value={firstLoginOtp} onChange={setFirstLoginOtp} onComplete={setFirstLoginOtp} accent={role} />
+                </div>
+                <div>
+                  <p className="mb-1 text-[13px] font-bold text-slate-700">New PIN</p>
+                  <PinBoxes value={pin} onChange={setPin} accent={role} />
+                </div>
+                <div>
+                  <p className="mb-1 text-[13px] font-bold text-slate-700">Confirm PIN</p>
+                  <PinBoxes value={confirmPin} onChange={setConfirmPin} accent={role} />
+                </div>
+                <button type="submit" disabled={loading} className={`${buttonBase} ${accent.button}`}>
+                  {loading ? "Setting PIN..." : "Set PIN"} <ArrowRight size={17} />
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSendFirstLoginOtp}
+                  disabled={loading}
+                  className={`min-h-11 w-full text-sm font-bold ${accent.link}`}
+                >
+                  Send another code
+                </button>
+              </>
+            )}
           </form>
         )}
       </section>

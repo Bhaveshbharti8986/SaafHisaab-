@@ -16,6 +16,7 @@ const settingsSchema = new mongoose.Schema({
   gstNumber: { type: String, default: "" },
   address: { type: String, default: "" },
   village: { type: String, default: "" },
+  profileImageUrl: { type: String, default: "" },
 
 }, { timestamps: true });
 

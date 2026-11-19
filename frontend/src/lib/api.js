@@ -23,14 +23,15 @@ let refreshQueue = [];
 async function request(method, path, body) {
   try {
     const headers = {};
-    if (body) headers["Content-Type"] = "application/json";
+    const isFormData = typeof FormData !== "undefined" && body instanceof FormData;
+    if (body && !isFormData) headers["Content-Type"] = "application/json";
     const accessToken = localStorage.getItem("accessToken");
     if (accessToken) headers["Authorization"] = `Bearer ${accessToken}`;
 
     const res = await fetch(`${BASE}${path}`, {
       method,
       headers,
-      body: body ? JSON.stringify(body) : undefined,
+      body: isFormData ? body : body ? JSON.stringify(body) : undefined,
       credentials: "include", // Important for httpOnly cookies
     });
 
@@ -45,12 +46,12 @@ async function request(method, path, body) {
           localStorage.setItem("accessToken", newToken);
           // Retry the original request with new token
           const retryHeaders = {};
-          if (body) retryHeaders["Content-Type"] = "application/json";
+          if (body && !isFormData) retryHeaders["Content-Type"] = "application/json";
           retryHeaders["Authorization"] = `Bearer ${newToken}`;
           const retryRes = await fetch(`${BASE}${path}`, {
             method,
             headers: retryHeaders,
-            body: body ? JSON.stringify(body) : undefined,
+            body: isFormData ? body : body ? JSON.stringify(body) : undefined,
             credentials: "include",
           });
           if (!retryRes.ok) {
@@ -77,7 +78,7 @@ async function request(method, path, body) {
     return await res.json();
   } catch (err) {
     // If it's a network error (TypeError: Failed to fetch) and it's a modifying request, queue it
-    if ((err instanceof TypeError || err.message === "Failed to fetch") && method !== "GET") {
+    if ((err instanceof TypeError || err.message === "Failed to fetch") && method !== "GET" && !path.startsWith("/auth/")) {
       console.warn(`Network error detected. Queuing ${method} ${path} for offline sync.`);
       await addToQueue(method, path, body);
       // Return a mock success response so the UI proceeds smoothly

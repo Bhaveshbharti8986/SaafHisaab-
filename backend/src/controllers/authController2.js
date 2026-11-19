@@ -10,7 +10,18 @@ import { getOtpHtml } from "../utils/emailotp.js";
 import { sendEmail } from "../Service/email.service.js";
 import { sendPhoneSms } from "../Service/sms.service.js";
 import { getOtpBody } from "../utils/phoneOtp.js";
+import { validateMandiSettings } from "../utils/validateMandiSettings.js";
 const JWT_SECRET = config.JWT_SECRET;
+
+function getUserIdentifierQuery(identifier) {
+  if (identifier.includes("@")) {
+    return { email: identifier.toLowerCase() };
+  }
+  if (/^\d{10}$/.test(identifier)) {
+    return { mobile: identifier };
+  }
+  return { employeeId: identifier.toUpperCase() };
+}
 
 // ============================================================================
 // REGISTRATION OTP FUNCTIONS
@@ -47,7 +58,7 @@ export const sendPhoneOtp = async (req, res) => {
     });
 
     // Generate OTP
-    const otp = Math.floor(100000 + Math.random() * 900000);
+    const otp = crypto.randomInt(100000, 1000000);
     
     const otpHash = crypto
       .createHash("sha256")
@@ -62,12 +73,20 @@ export const sendPhoneOtp = async (req, res) => {
       createdAt: new Date(Date.now()),
     });
 
- 
-const otpBody = getOtpBody(otp, "verification OTP", "Use this OTP to complete your registration.");
-await sendPhoneSms(phone, "Your OTP verification", otpBody);
-    res.json({ 
+    const otpBody = getOtpBody(
+      otp,
+      "verification OTP",
+      "Use this OTP to complete your registration.",
+    );
+    const smsResult = await sendPhoneSms(phone, otpBody);
+    if (!smsResult.success) {
+      await otpModel.deleteOne({ otpHash, mobile: phone, purpose: "register" });
+      return res.status(502).json({ error: "Could not send registration OTP. Please try again." });
+    }
+
+    return res.json({
       message: "OTP sent to your phone for registration",
-      demoOtp: otp // Remove this in production
+      ...(config.NODE_ENV === "production" ? {} : { demoOtp: otp }),
     });
   } catch (error) {
     console.error("Phone OTP Error:", error);
@@ -328,17 +347,7 @@ export const login = async (req, res) => {
     }
 
     const identifier = employeeId.trim();
-    let query = {};
-
-    if (identifier.includes("@")) {
-      query = { email: identifier.toLowerCase() };
-    } else if (/^\d{10}$/.test(identifier)) {
-      query = { mobile: identifier };
-    } else {
-      query = { employeeId: identifier.toUpperCase() };
-    }
-
-    const user = await User.findOne(query);
+    const user = await User.findOne(getUserIdentifierQuery(identifier));
     if (!user) {
       return res.status(404).json({
         error: "User not found. Check your credentials or contact Seth.",
@@ -537,7 +546,7 @@ export const forgotPasswordSendPhoneOtp = async (req, res) => {
     });
 
     // Generate OTP
-    const otp = Math.floor(100000 + Math.random() * 900000);
+    const otp = crypto.randomInt(100000, 1000000);
     
     const otpHash = crypto
       .createHash("sha256")
@@ -551,19 +560,20 @@ export const forgotPasswordSendPhoneOtp = async (req, res) => {
       purpose: "forgot_password",
       createdAt: new Date(Date.now()),
     });
-const otpBody = getOtpBody(otp, "Password reset", "Use this OTP to complete your password reset.");
-const response=await sendPhoneSms(phone, otpBody);
+    const otpBody = getOtpBody(
+      otp,
+      "Password reset",
+      "Use this OTP to complete your password reset.",
+    );
+    const smsResult = await sendPhoneSms(phone, otpBody);
+    if (!smsResult.success) {
+      await otpModel.deleteOne({ otpHash, mobile: phone, purpose: "forgot_password" });
+      return res.status(502).json({ error: "Could not send password reset OTP. Please try again." });
+    }
 
-   if (!response || !response.success) {
-  return res.status(400).json({ 
-    error: "Failed to send OTP", 
-    details: response?.error || "Gateway connection error" 
-  });
-}
-
-res.json({ 
+    return res.json({
       message: "OTP sent to your phone for password reset",
-      demoOtp: otp // Remove this in production
+      ...(config.NODE_ENV === "production" ? {} : { demoOtp: otp }),
     });
   } catch (error) {
     console.error("Forgot Password Phone OTP Error:", error);
@@ -884,6 +894,7 @@ export const getProfile = async (req, res) => {
         gstNumber: settings.gstNumber,
         address: settings.address,
         village: settings.village,
+        profileImageUrl: settings.profileImageUrl || "",
         kardaPerBagKg: settings.kardaPerBagKg,
         labourPerBagCash: settings.labourPerBagCash,
         shrinkagePercent: settings.shrinkagePercent,
@@ -896,6 +907,7 @@ export const getProfile = async (req, res) => {
       ownerName: user.name,
       email: user.email || "",
       phone: user.mobile || "",
+      profileImageUrl: user.profileImageUrl || "",
       village: "",
       role: user.role,
       employeeId: user.employeeId
@@ -919,6 +931,11 @@ export const updateProfile = async (req, res) => {
     }
 
     if (user.role === "seth") {
+      const validationError = validateMandiSettings(req.body);
+      if (validationError) {
+        return res.status(400).json({ error: validationError });
+      }
+
       const settings = await Settings.findOne({ sethId: req.user.id }) || 
                         await Settings.create({ sethId: req.user.id });
       
@@ -960,6 +977,7 @@ export const updateProfile = async (req, res) => {
       ownerName: user.name,
       email: user.email || "",
       phone: user.mobile || "",
+      profileImageUrl: user.profileImageUrl || "",
       village: "",
       role: user.role,
       employeeId: user.employeeId
@@ -971,19 +989,19 @@ export const updateProfile = async (req, res) => {
 };
 
 /**
- * Change password
- * POST /api/auth/change-password
+ * Change staff PIN
+ * POST /api/auth/change-pin
  */
 export const changePassword = async (req, res) => {
   try {
     const { oldPin, newPin } = req.body;
     
     if (!oldPin || !newPin ) {
-      return res.status(400).json({ error: "Old password and new password are required" });
+      return res.status(400).json({ error: "Current PIN and new PIN are required" });
     }
 
-    if (newPin.length < 4) {
-      return res.status(400).json({ error: "New Pin must be at least 6 characters long" });
+    if (!/^\d{4}$/.test(oldPin) || !/^\d{4}$/.test(newPin)) {
+      return res.status(400).json({ error: "Current PIN and new PIN must each be exactly 4 digits" });
     }
 
     const user = await User.findById(req.user.id);
@@ -992,9 +1010,13 @@ export const changePassword = async (req, res) => {
       return res.status(404).json({ error: "User not found" });
     }
 
+    if (!["munsi", "labour"].includes(user.role)) {
+      return res.status(403).json({ error: "PIN changes are only available to staff accounts" });
+    }
+
     const isMatch = await bcrypt.compare(oldPin, user.password);
     if (!isMatch) {
-      return res.status(401).json({ error: "Incorrect current password" });
+      return res.status(401).json({ error: "Incorrect current PIN" });
     }
 
     const salt = await bcrypt.genSalt(10);
@@ -1021,36 +1043,154 @@ export const changePassword = async (req, res) => {
 
 
 /**
- * set-pin
+ * Send a one-time code to the registered phone for first-time PIN setup.
+ * POST /api/auth/first-login/pin-otp
+ */
+export const sendFirstLoginPinOtp = async (req, res) => {
+  try {
+    const { employeeId } = req.body;
+    if (typeof employeeId !== "string" || !employeeId.trim()) {
+      return res.status(400).json({ error: "Employee ID, phone, or email is required" });
+    }
+
+    const user = await User.findOne(getUserIdentifierQuery(employeeId.trim()));
+    if (!user || !["munsi", "labour"].includes(user.role)) {
+      return res.status(404).json({ error: "First-time PIN setup is only available to staff accounts" });
+    }
+    if (user.password) {
+      return res.status(409).json({ error: "PIN is already set. Use Forgot PIN to reset it." });
+    }
+    if (!/^\d{10}$/.test(user.mobile || "")) {
+      return res.status(400).json({ error: "A valid registered phone number is required to set up your PIN" });
+    }
+
+    const recentOtp = await otpModel.findOne({
+      mobile: user.mobile,
+      type: "mobile",
+      purpose: "first_login_pin",
+      createdAt: { $gte: new Date(Date.now() - 60 * 1000) },
+    });
+    if (recentOtp) {
+      const retryAfterSeconds = Math.ceil(
+        (recentOtp.createdAt.getTime() + 60 * 1000 - Date.now()) / 1000,
+      );
+      res.set("Retry-After", String(retryAfterSeconds));
+      return res.status(429).json({ error: "Please wait before requesting another verification code" });
+    }
+
+    await otpModel.deleteMany({
+      mobile: user.mobile,
+      type: "mobile",
+      purpose: "first_login_pin",
+    });
+
+    const otp = crypto.randomInt(100000, 1000000);
+    const otpHash = crypto.createHash("sha256").update(String(otp)).digest("hex");
+    const otpRecord = await otpModel.create({
+      otpHash,
+      type: "mobile",
+      mobile: user.mobile,
+      purpose: "first_login_pin",
+      createdAt: new Date(),
+    });
+
+    const response = await sendPhoneSms(
+      user.mobile,
+      getOtpBody(otp, "first-time PIN setup", "Use this OTP to set your staff PIN."),
+    );
+    if (!response?.success) {
+      await otpModel.deleteOne({ _id: otpRecord._id });
+      return res.status(502).json({ error: "Could not send the verification code. Please try again." });
+    }
+
+    const maskedPhone = `******${user.mobile.slice(-4)}`;
+    return res.json({
+      message: `Verification code sent to ${maskedPhone}`,
+      maskedPhone,
+      ...(config.NODE_ENV === "production" ? {} : { demoOtp: otp }),
+    });
+  } catch (error) {
+    console.error("First-time PIN OTP Error:", error);
+    return res.status(500).json({ error: "Failed to send verification code" });
+  }
+};
+
+/**
+ * Set a first-time staff PIN after verifying an OTP sent to the registered phone.
  * POST /api/auth/set-pin
  */
 export const setPin = async (req, res) => {
   try {
-     const { employeeId, pin } = req.body;
-      
-     let quary={}
-     if (employeeId.includes("@")) {
-       quary = { email: employeeId.toLowerCase() };
-     } else if (/^\d{10}$/.test(employeeId)) {
-       quary = { mobile: employeeId };
-     } else {
-       quary = { employeeId: employeeId.toUpperCase() };
-     }
-     
-     const user = await User.findOne(quary);
-     if (!user) {
-       return res.status(404).json({ error: "User not found" });
-     }
-     
-     if (user.password) {
-       return res.status(400).json({ error: "PIN is already set. Please login instead." });
-     }
-     
-     const salt = await bcrypt.genSalt(10);
-     user.password = await bcrypt.hash(pin, salt);
-     await user.save();
-     
-     res.json({ success: true, message: "PIN set successfully!" });
+    const { employeeId, otp, pin } = req.body;
+    if (typeof employeeId !== "string" || !employeeId.trim()) {
+      return res.status(400).json({ error: "Employee ID, phone, or email is required" });
+    }
+    if (typeof otp !== "string" || !/^\d{6}$/.test(otp)) {
+      return res.status(400).json({ error: "A valid 6-digit verification code is required" });
+    }
+    if (typeof pin !== "string" || !/^\d{4}$/.test(pin)) {
+      return res.status(400).json({ error: "PIN must be exactly 4 digits" });
+    }
+
+    const user = await User.findOne(getUserIdentifierQuery(employeeId.trim()));
+    if (!user || !["munsi", "labour"].includes(user.role)) {
+      return res.status(404).json({ error: "First-time PIN setup is only available to staff accounts" });
+    }
+    if (user.password) {
+      return res.status(409).json({ error: "PIN is already set. Use Forgot PIN to reset it." });
+    }
+
+    const otpHash = crypto.createHash("sha256").update(otp).digest("hex");
+    const otpQuery = {
+      mobile: user.mobile,
+      type: "mobile",
+      purpose: "first_login_pin",
+      createdAt: { $gte: new Date(Date.now() - 5 * 60 * 1000) },
+    };
+    const otpRecord = await otpModel.findOne(otpQuery);
+    if (!otpRecord) {
+      return res.status(400).json({ error: "Invalid or expired verification code" });
+    }
+    if (otpRecord.attempts >= 5) {
+      return res.status(429).json({ error: "Too many invalid codes. Request a new verification code." });
+    }
+    if (otpRecord.otpHash !== otpHash) {
+      const failedAttempt = await otpModel.findOneAndUpdate(
+        { _id: otpRecord._id, attempts: { $lt: 5 } },
+        { $inc: { attempts: 1 } },
+        { new: true },
+      );
+      if (!failedAttempt || failedAttempt.attempts >= 5) {
+        await otpModel.deleteOne({ _id: otpRecord._id });
+        return res.status(429).json({ error: "Too many invalid codes. Request a new verification code." });
+      }
+      return res.status(400).json({ error: "Invalid or expired verification code" });
+    }
+
+    const consumedOtp = await otpModel.findOneAndDelete({
+      _id: otpRecord._id,
+      otpHash,
+      attempts: { $lt: 5 },
+    });
+    if (!consumedOtp) {
+      return res.status(400).json({ error: "Invalid or expired verification code" });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPin = await bcrypt.hash(pin, salt);
+    const result = await User.updateOne(
+      {
+        _id: user._id,
+        role: { $in: ["munsi", "labour"] },
+        $or: [{ password: null }, { password: { $exists: false } }, { password: "" }],
+      },
+      { $set: { password: hashedPin } },
+    );
+    if (result.modifiedCount !== 1) {
+      return res.status(409).json({ error: "PIN is already set. Please log in instead." });
+    }
+
+    return res.json({ success: true, message: "PIN set successfully!" });
   } catch (error) {
     console.error("Set Pin Error:", error);
     res.status(500).json({ error: "Failed to set pin for user" });

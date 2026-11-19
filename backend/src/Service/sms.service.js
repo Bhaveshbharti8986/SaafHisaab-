@@ -1,52 +1,67 @@
 import axios from "axios";
-import config from "../Config/Congig.js"; 
-
-// 💡 CONTROL SWITCH: Set this to true when you switch your project to production
-const isProduction = false; 
+import config from "../Config/Congig.js";
 
 /**
- * Sends an SMS text message. Uses Quick Route in dev, switches to DLT Route in production.
- * phone - Target phone number(s).
- * smsText - The exact text message body to send.
+ * Sends an SMS through Fast2SMS. Production sends must use the configured DLT
+ * sender and template; development may use the Fast2SMS quick route.
  */
 export async function sendPhoneSms(phone, smsText) {
-  try {
-    // 1. DEV PAYLOAD
-    let payload = {
-      "route": "q",
-      "message": smsText,
-      "numbers": phone
-    };
+  if (!/^\d{10}$/.test(phone || "")) {
+    return { success: false, error: "Phone number must contain 10 digits" };
+  }
+  if (typeof smsText !== "string" || !smsText.trim()) {
+    return { success: false, error: "SMS message cannot be empty" };
+  }
+  if (!config.FAST2SMS_API_KEY) {
+    return { success: false, error: "SMS provider is not configured" };
+  }
 
-    // 2. PRODUCTION PAYLOAD (DLT Route - Will overwrite payload when isProduction is true)
-    if (isProduction) {
-      payload = {
-        "route": "dlt",
-        "sender_id": "YOUR_SENDER_ID",       // Replace with approved 6-character DLT Header
-        "message": smsText,                 // Must match registered DLT template format exactly
-        "template_id": "YOUR_TEMPLATE_ID", // Replace with  approved 19-digit DLT Template ID
-        "numbers": phone
-      };
+  const isProduction = config.NODE_ENV === "production";
+  const payload = {
+    route: isProduction ? "dlt" : "q",
+    message: smsText,
+    numbers: phone,
+  };
+
+  if (isProduction) {
+    if (!/^[A-Za-z0-9]{6}$/.test(config.FAST2SMS_SENDER_ID || "")) {
+      return { success: false, error: "SMS DLT sender ID is not configured correctly" };
     }
+    if (!/^\d{19}$/.test(config.FAST2SMS_TEMPLATE_ID || "")) {
+      return { success: false, error: "SMS DLT template ID is not configured correctly" };
+    }
+    payload.sender_id = config.FAST2SMS_SENDER_ID;
+    payload.template_id = config.FAST2SMS_TEMPLATE_ID;
+  }
 
-    // Send the request using the active payload profile
+  try {
     const response = await axios.post(
       "https://www.fast2sms.com/dev/bulkV2",
       payload,
       {
         headers: {
-          "authorization":config.FAST2SMS_API_KEY,
-          "Content-Type": "application/json"
-        }
-      }
+          authorization: config.FAST2SMS_API_KEY,
+          "Content-Type": "application/json",
+        },
+        timeout: 15_000,
+      },
     );
+
+    if (response.data?.return !== true) {
+      return {
+        success: false,
+        error: typeof response.data?.message === "string"
+          ? response.data.message
+          : "SMS provider rejected the request",
+      };
+    }
 
     return { success: true, data: response.data };
   } catch (error) {
-    console.error("❌ Fast2SMS Error:", error.response?.data || error.message);
-    return { 
+    console.error("Fast2SMS request failed:", error.response?.data || error.message);
+    return {
       success: false, 
-      error: error.response?.data?.message || error.message 
+      error: error.response?.data?.message || "SMS provider request failed",
     };
   }
 }

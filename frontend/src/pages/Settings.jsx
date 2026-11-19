@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import AppLayout from "../components/layout/AppLayout.jsx";
 import { api } from "../lib/api.js";
 import { User, Mail, Phone, Briefcase, FileText, MapPin, Lock, LogOut, ShieldAlert, Camera, X } from "lucide-react";
@@ -9,14 +9,18 @@ export default function Settings() {
     ownerName: "", email: "", phone: "",
     businessName: "", gstNumber: "", address: "", village: "",
     kardaPerBagKg: 0.5, labourPerBagCash: 5, shrinkagePercent: 2,
-    role: "", employeeId: ""
+    role: "", employeeId: "", profileImageUrl: ""
   });
   const [loading, setLoading] = useState(true);
+  const [profileLoadError, setProfileLoadError] = useState(false);
+  const [loadAttempt, setLoadAttempt] = useState(0);
 
   // PIN modal state
   const [showPinModal, setShowPinModal] = useState(false);
   const [pinForm, setPinForm] = useState({ oldPin: "", newPin: "", confirmPin: "" });
   const [pinSubmitting, setPinSubmitting] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const profileImageInput = useRef(null);
 
   const isSeth = profile.role === "seth";
   const isMunsi = profile.role === "munsi";
@@ -24,23 +28,73 @@ export default function Settings() {
   const isRestricted = isMunsi || isLabour;
 
   useEffect(() => {
+    let active = true;
+    setLoading(true);
+    setProfileLoadError(false);
     api.get("/auth/profile")
-      .then(s => { if (s) setProfile(s); })
-      .finally(() => setLoading(false));
-  }, []);
+      .then(s => {
+        if (active && s) setProfile(s);
+      })
+      .catch(err => {
+        if (!active) return;
+        setProfileLoadError(true);
+        showToast("error", err.message || "Failed to load profile");
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
 
-  function handleSave(e) {
+    return () => {
+      active = false;
+    };
+  }, [loadAttempt]);
+
+  async function handleSave(e) {
     e.preventDefault();
-    api.patch("/auth/profile", profile)
-      .then(() => showToast("Profile updated successfully!", "success"))
-      .catch(err => showToast(err.message, "error"));
+    try {
+      await api.patch("/auth/profile", profile);
+      showToast("success", "Profile updated successfully!");
+    } catch (err) {
+      showToast("error", err.message || "Failed to update profile");
+    }
+  }
+
+  async function handleProfileImageChange(event) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      showToast("error", "Choose a JPG, PNG, or WebP image");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      showToast("error", "Profile images must be 5 MB or smaller");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("image", file);
+    setUploadingImage(true);
+    try {
+      const result = await api.post("/auth/profile/image", formData);
+      if (!result?.profileImageUrl) {
+        throw new Error("Profile image upload returned no image URL");
+      }
+      setProfile(current => ({ ...current, profileImageUrl: result.profileImageUrl }));
+      showToast("success", "Profile photo updated");
+    } catch (err) {
+      showToast("error", err.message || "Failed to upload profile photo");
+    } finally {
+      setUploadingImage(false);
+    }
   }
 
   async function handleLogout() {
     try {
       await api.post("/auth/logout");
     } catch (err) {
-      console.error(err);
+      showToast("error", err.message || "Could not log out. Check your connection and try again.");
+      return;
     }
     localStorage.removeItem("accessToken"); // ✅ Fixed: was "token"
     sessionStorage.removeItem("unlocked");
@@ -50,9 +104,10 @@ export default function Settings() {
   async function handleLogoutAll() {
     try {
       await api.post("/auth/logout-all");
-      showToast("Logged out from all devices securely.", "success");
+      showToast("success", "Logged out from all devices securely.");
     } catch (err) {
-      showToast(err.message || "Logout from all devices failed", "error");
+      showToast("error", err.message || "Logout from all devices failed");
+      return;
     }
     localStorage.removeItem("accessToken"); // ✅ Fixed: was "token"
     sessionStorage.removeItem("unlocked");
@@ -61,17 +116,19 @@ export default function Settings() {
 
   const handlePinChange = async (e) => {
     e.preventDefault();
-    if (pinForm.newPin.length !== 4) return showToast("New PIN must be 4 digits", "error");
-    if (pinForm.newPin !== pinForm.confirmPin) return showToast("New PINs do not match", "error");
+    if (!/^\d{4}$/.test(pinForm.oldPin) || !/^\d{4}$/.test(pinForm.newPin)) {
+      return showToast("error", "Current and new PIN must each be 4 digits");
+    }
+    if (pinForm.newPin !== pinForm.confirmPin) return showToast("error", "New PINs do not match");
 
     setPinSubmitting(true);
     try {
       await api.post("/auth/change-pin", { oldPin: pinForm.oldPin, newPin: pinForm.newPin });
-      showToast("PIN changed successfully!", "success");
+      showToast("success", "PIN changed successfully!");
       setPinForm({ oldPin: "", newPin: "", confirmPin: "" });
       setShowPinModal(false);
     } catch (err) {
-      showToast(err.message || "Failed to change PIN", "error");
+      showToast("error", err.message || "Failed to change PIN");
     } finally {
       setPinSubmitting(false);
     }
@@ -90,10 +147,26 @@ export default function Settings() {
         <div className="flex flex-col items-center mt-2">
           <div className="relative mb-3">
             <div className="w-24 h-24 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center border-4 border-white/20 shadow-xl overflow-hidden">
-              <User size={40} className="text-white/80" />
+              {profile.profileImageUrl
+                ? <img src={profile.profileImageUrl} alt={`${profile.ownerName || "Profile"} avatar`} className="h-full w-full object-cover" />
+                : <User size={40} className="text-white/80" />}
             </div>
-            <button type="button" className="absolute bottom-0 right-0 bg-blue-500 p-2 rounded-full text-white shadow-lg active:scale-95 transition-transform border-2 border-blue-800">
-              <Camera size={14} />
+            <input
+              ref={profileImageInput}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              onChange={handleProfileImageChange}
+              className="hidden"
+              aria-label="Choose profile photo"
+            />
+            <button
+              type="button"
+              onClick={() => profileImageInput.current?.click()}
+              disabled={loading || profileLoadError || uploadingImage}
+              aria-label={uploadingImage ? "Uploading profile photo" : "Change profile photo"}
+              className="absolute bottom-0 right-0 min-h-11 min-w-11 rounded-full border-2 border-blue-800 bg-blue-500 p-2 text-white shadow-lg transition-transform active:scale-95 disabled:opacity-60"
+            >
+              <Camera size={16} />
             </button>
           </div>
           <h2 className="text-white font-bold text-xl flex items-center gap-2">
@@ -110,6 +183,17 @@ export default function Settings() {
         {loading ? (
           <div className="flex justify-center items-center h-40">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          </div>
+        ) : profileLoadError ? (
+          <div className="rounded-3xl border border-red-100 bg-white p-5 text-center shadow-sm">
+            <p className="font-semibold text-slate-800">Could not load your profile.</p>
+            <button
+              type="button"
+              onClick={() => setLoadAttempt(attempt => attempt + 1)}
+              className="mt-3 min-h-11 rounded-xl bg-blue-600 px-5 font-bold text-white"
+            >
+              Try again
+            </button>
           </div>
         ) : (
           <form onSubmit={handleSave} className="space-y-6">

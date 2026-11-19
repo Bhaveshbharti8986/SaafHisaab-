@@ -1,4 +1,5 @@
 import Settings from "../models/Settings.js";
+import { validateMandiSettings } from "../utils/validateMandiSettings.js";
 
 async function getSettingsDoc(sethId) {
   let settings = await Settings.findOne({ sethId });
@@ -15,6 +16,11 @@ export const getSettings = async (req, res) => {
 
 export const updateSettings = async (req, res) => {
   try {
+    const validationError = validateMandiSettings(req.body);
+    if (validationError) {
+      return res.status(400).json({ error: validationError });
+    }
+
     let settings = await getSettingsDoc(req.sethId);
     
     const fields = [
@@ -25,9 +31,6 @@ export const updateSettings = async (req, res) => {
 
     fields.forEach(field => {
       if (req.body[field] !== undefined) {
-        if ((field === "kardaPerBagKg" || field === "labourPerBagCash" || field === "shrinkagePercent") && req.body[field] < 0) {
-          throw new Error(`${field} cannot be negative`);
-        }
         settings[field] = req.body[field];
       }
     });
