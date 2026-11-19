@@ -21,6 +21,7 @@ export default function AuthField({
   right,
   accent = "seth",
   className = "",
+  compact = false,
   id,
   ...inputProps
 }) {
@@ -31,19 +32,22 @@ export default function AuthField({
   return (
     <div className={`block ${className}`}>
       {label && (
-        <label htmlFor={inputId} className="mb-1 block text-[13px] font-bold leading-[14px] text-slate-700">
+        <label
+          htmlFor={inputId}
+          className={`${compact ? "mb-0.5 text-xs leading-[14px]" : "mb-1 text-[13px] leading-[15px]"} block font-bold text-slate-700`}
+        >
           {label}
         </label>
       )}
       <div
-        className={`flex h-14 items-center gap-3 rounded-2xl border-[1.5px] border-slate-400 bg-white px-2.5 shadow-field ring-4 ring-transparent transition focus-within:ring-4 ${accentClasses.focus}`}
+        className={`flex ${compact ? "h-11 gap-2 rounded-xl px-2" : "h-12 gap-2.5 rounded-2xl px-2.5"} items-center border-[1.5px] border-slate-500 bg-white shadow-[0_2px_4px_rgba(15,23,42,.08),0_8px_18px_rgba(15,23,42,.07)] ring-4 ring-transparent transition focus-within:ring-4 ${accentClasses.focus}`}
       >
         {Icon && (
           <span
             aria-hidden="true"
-            className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${accentClasses.icon}`}
+            className={`flex ${compact ? "h-8 w-8 rounded-lg" : "h-9 w-9 rounded-xl"} shrink-0 items-center justify-center ${accentClasses.icon}`}
           >
-            <Icon size={18} />
+            <Icon size={compact ? 16 : 18} />
           </span>
         )}
         <input

@@ -60,7 +60,7 @@ export default function PinBoxes({ value = "", onChange, length = 4, accent = "s
           onChange={(event) => updateAt(index, event.target.value)}
           onKeyDown={(event) => handleKeyDown(event, index)}
           onPaste={handlePaste}
-          className={`h-14 w-1/5 min-w-0 rounded-2xl border-[1.5px] border-slate-400 bg-white text-center text-2xl font-extrabold text-slate-900 shadow-field outline-none transition focus:ring-4 ${focusClass}`}
+          className={`h-12 w-1/5 min-w-0 rounded-xl border-[1.5px] border-slate-500 bg-white text-center text-2xl font-extrabold text-slate-900 shadow-[0_2px_4px_rgba(15,23,42,.08),0_8px_18px_rgba(15,23,42,.07)] outline-none transition focus:ring-4 ${focusClass}`}
         />
       ))}
     </div>

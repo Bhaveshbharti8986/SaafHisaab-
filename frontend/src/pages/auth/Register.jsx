@@ -157,18 +157,18 @@ export default function Register() {
 
   return (
     <main
-      className="mx-auto min-h-screen w-full max-w-[480px] font-sans"
+      className="mx-auto flex h-[100dvh] w-full max-w-[480px] flex-col overflow-hidden font-sans"
       style={{ backgroundImage: authHeroGradients.seth }}
     >
       <AuthHero
         role="seth"
         eyebrow="New mandi registration"
         {...heroTitles[step]}
-        height={270}
+        height="clamp(145px, 25.5dvh, 235px)"
         onBack={() => step === 1 ? navigate("/") : setStep(step - 1)}
       />
-      <section className="relative z-10 -mt-6 min-h-[calc(100vh-246px)] rounded-t-[28px] bg-white px-5 pb-8 pt-6 shadow-[0_-8px_24px_rgba(15,23,42,.12)]">
-        <div className="mb-5 flex gap-2" aria-label={`Step ${step} of 3`}>
+      <section className="relative z-10 -mt-5 flex min-h-0 flex-1 flex-col overflow-hidden rounded-t-[28px] bg-white px-4 pb-2 pt-3 shadow-[0_-8px_24px_rgba(15,23,42,.12)]">
+        <div className="mb-2 flex shrink-0 gap-2" aria-label={`Step ${step} of 3`}>
           {[1, 2, 3].map((segment) => (
             <span
               key={segment}
@@ -178,15 +178,12 @@ export default function Register() {
         </div>
 
         {step === 1 && (
-          <form onSubmit={handleCredentialsNext} className="space-y-4">
-            <div className="mb-1">
-              <h2 className="text-xl font-extrabold text-slate-900">You</h2>
-              <p className="mt-1 text-sm text-slate-600">Step 1 of 3 · Your account details</p>
-            </div>
+          <form onSubmit={handleCredentialsNext} className="flex min-h-0 flex-1 flex-col space-y-0.5">
             <AuthField
               label="Your name"
               icon={UserRound}
               accent="seth"
+              compact
               value={form.ownerName}
               onChange={updateForm("ownerName")}
               placeholder="Owner / Seth name"
@@ -197,6 +194,7 @@ export default function Register() {
               label="Mobile number"
               icon={Phone}
               accent="seth"
+              compact
               type="tel"
               inputMode="numeric"
               value={form.phone}
@@ -210,6 +208,7 @@ export default function Register() {
               label="Email address"
               icon={Mail}
               accent="seth"
+              compact
               type="email"
               value={form.email}
               onChange={updateForm("email")}
@@ -221,6 +220,7 @@ export default function Register() {
               label="Password"
               icon={KeyRound}
               accent="seth"
+              compact
               type={showPassword ? "text" : "password"}
               value={form.password}
               onChange={updateForm("password")}
@@ -245,6 +245,7 @@ export default function Register() {
               label="Confirm password"
               icon={LockKeyhole}
               accent="seth"
+              compact
               type={showConfirmPassword ? "text" : "password"}
               value={form.confirmPassword}
               onChange={updateForm("confirmPassword")}
@@ -265,25 +266,22 @@ export default function Register() {
                 </button>
               }
             />
-            <button type="submit" className={buttonBase}>
+            <button type="submit" className={`${buttonBase} min-h-11 py-2`}>
               Next: Business <ArrowRight size={17} />
             </button>
             <p className="text-center text-sm font-semibold text-slate-600">
-              Already registered? <Link href="/login" className="inline-flex min-h-11 items-center font-extrabold text-blue-700">Log in</Link>
+              Already registered?                             <Link href="/login" className="inline-flex min-h-11 items-center font-extrabold text-blue-700">Log in</Link>
             </p>
           </form>
         )}
 
         {step === 2 && (
-          <form onSubmit={handleBusinessNext} className="space-y-4">
-            <div className="mb-1">
-              <h2 className="text-xl font-extrabold text-slate-900">Business</h2>
-              <p className="mt-1 text-sm text-slate-600">Step 2 of 3 · Mandi information</p>
-            </div>
+          <form onSubmit={handleBusinessNext} className="flex min-h-0 flex-1 flex-col space-y-2">
             <AuthField
               label="Firm / mandi name"
               icon={BriefcaseBusiness}
               accent="seth"
+              compact
               value={form.businessName}
               onChange={updateForm("businessName")}
               placeholder="Your mandi name"
@@ -293,6 +291,7 @@ export default function Register() {
               label="GST number (optional)"
               icon={FileText}
               accent="seth"
+              compact
               value={form.gstNumber}
               onChange={(event) => setForm((current) => ({ ...current, gstNumber: event.target.value.toUpperCase() }))}
               placeholder="GST number"
@@ -301,6 +300,7 @@ export default function Register() {
               label="Village"
               icon={MapPin}
               accent="seth"
+              compact
               value={form.village}
               onChange={updateForm("village")}
               placeholder="Village or town"
@@ -309,6 +309,7 @@ export default function Register() {
               label="Address (optional)"
               icon={MapPin}
               accent="seth"
+              compact
               value={form.address}
               onChange={updateForm("address")}
               placeholder="Street, area or landmark"
@@ -317,11 +318,11 @@ export default function Register() {
               <button
                 type="button"
                 onClick={() => setStep(1)}
-                className="flex min-h-12 items-center justify-center gap-2 rounded-2xl border-2 border-slate-300 px-3 text-sm font-bold text-slate-800"
+                className="flex min-h-11 items-center justify-center gap-2 rounded-2xl border-2 border-slate-400 px-3 text-sm font-bold text-slate-800 shadow-field"
               >
                 <ArrowLeft size={16} /> Back
               </button>
-              <button type="submit" disabled={loading} className={buttonBase}>
+              <button type="submit" disabled={loading} className={`${buttonBase} min-h-11 py-2`}>
                 {loading ? "Sending..." : "Next: Verify"} <ArrowRight size={17} />
               </button>
             </div>
@@ -329,38 +330,30 @@ export default function Register() {
         )}
 
         {step === 3 && (
-          <form onSubmit={handleRegister} className="space-y-5">
-            <div className="mb-1">
-              <h2 className="text-xl font-extrabold text-slate-900">Verify</h2>
-              <p className="mt-1 text-sm text-slate-600">Step 3 of 3 · Confirm your phone and email</p>
+          <form onSubmit={handleRegister} className="flex min-h-0 flex-1 flex-col space-y-1.5">
+
+            <div className="flex flex-wrap gap-1.5 rounded-2xl bg-blue-50 p-2 text-sm font-bold text-blue-900">
+              <span className="rounded-full bg-white px-2.5 py-1">{form.businessName || "Your mandi"}</span>
+              <span className="rounded-full bg-white px-2.5 py-1">{form.ownerName}</span>
+              <span className="rounded-full bg-white px-2.5 py-1">{form.village || "Village not added"}</span>
             </div>
 
-            <div className="flex flex-wrap gap-2 rounded-2xl bg-blue-50 p-3 text-sm font-bold text-blue-900">
-              <span className="rounded-full bg-white px-3 py-1.5">{form.businessName || "Your mandi"}</span>
-              <span className="rounded-full bg-white px-3 py-1.5">{form.ownerName}</span>
-              <span className="rounded-full bg-white px-3 py-1.5">{form.village || "Village not added"}</span>
-            </div>
-
-            {demoPhoneOtp && (
-              <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-center text-sm font-bold text-emerald-800">
-                Demo Phone OTP: {demoPhoneOtp}
-              </p>
-            )}
-            {demoEmailOtp && (
-              <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-center text-sm font-bold text-emerald-800">
-                Demo Email OTP: {demoEmailOtp}
-              </p>
+            {(demoPhoneOtp || demoEmailOtp) && (
+              <div className="grid grid-cols-2 gap-2 text-center text-xs font-bold text-emerald-800">
+                {demoPhoneOtp && <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-2 py-1.5">Phone OTP: {demoPhoneOtp}</p>}
+                {demoEmailOtp && <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-2 py-1.5">Email OTP: {demoEmailOtp}</p>}
+              </div>
             )}
 
             <div>
-              <p className="mb-2 text-[13px] font-bold text-slate-700">Phone OTP</p>
+              <p className="mb-0.5 text-[13px] font-bold text-slate-700">Phone OTP</p>
               <OtpInput length={6} value={phoneOtp} onChange={setPhoneOtp} onComplete={setPhoneOtp} />
-              <p className="mt-2 text-xs font-medium text-slate-600">Sent to {form.phone}</p>
+              <p className="mt-1 text-xs font-medium text-slate-600">Sent to {form.phone}</p>
             </div>
             <div>
-              <p className="mb-2 text-[13px] font-bold text-slate-700">Email OTP</p>
+              <p className="mb-0.5 text-[13px] font-bold text-slate-700">Email OTP</p>
               <OtpInput length={6} value={emailOtp} onChange={setEmailOtp} onComplete={setEmailOtp} />
-              <p className="mt-2 text-xs font-medium text-slate-600">Sent to {form.email}</p>
+              <p className="mt-1 text-xs font-medium text-slate-600">Sent to {form.email}</p>
             </div>
 
             <button type="button" onClick={handleResend} disabled={loading} className="min-h-11 w-full text-sm font-bold text-blue-700 underline underline-offset-2 disabled:opacity-60">
@@ -370,11 +363,11 @@ export default function Register() {
               <button
                 type="button"
                 onClick={() => setStep(2)}
-                className="flex min-h-12 items-center justify-center gap-2 rounded-2xl border-2 border-slate-300 px-3 text-sm font-bold text-slate-800"
+                className="flex min-h-11 items-center justify-center gap-2 rounded-2xl border-2 border-slate-400 px-3 text-sm font-bold text-slate-800 shadow-field"
               >
                 <ArrowLeft size={16} /> Back
               </button>
-              <button type="submit" disabled={loading} className={buttonBase}>
+              <button type="submit" disabled={loading} className={`${buttonBase} min-h-11 py-2`}>
                 {loading ? "Creating..." : "Create account"} <ArrowRight size={17} />
               </button>
             </div>

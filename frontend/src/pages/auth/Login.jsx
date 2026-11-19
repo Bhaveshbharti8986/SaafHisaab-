@@ -207,18 +207,18 @@ export default function Login() {
 
   return (
     <main
-      className="mx-auto min-h-screen w-full max-w-[480px] font-sans"
+      className="mx-auto flex h-[100dvh] w-full max-w-[480px] flex-col overflow-hidden font-sans"
       style={{ backgroundImage: authHeroGradients[role] }}
     >
       <AuthHero
         role={role}
         {...heroContent}
-        height={270}
+        height="clamp(145px, 26dvh, 270px)"
         onBack={() => step === 1 ? navigate("/") : setStep(1)}
       />
-      <section className="relative z-10 -mt-6 flex min-h-[calc(100vh-246px)] flex-col rounded-t-[28px] bg-white px-5 pb-4 pt-6 shadow-[0_-8px_24px_rgba(15,23,42,.12)]">
+      <section className="relative z-10 -mt-5 flex min-h-0 flex-1 flex-col overflow-hidden rounded-t-[28px] bg-white px-4 pb-2 pt-4 shadow-[0_-8px_24px_rgba(15,23,42,.12)]">
         {step === 1 && (
-          <form onSubmit={handleLogin} className="flex flex-1 flex-col space-y-5">
+          <form onSubmit={handleLogin} className="flex flex-1 flex-col space-y-3">
             {loginType !== "seth" && <div>
               <h2 className="text-xl font-extrabold text-slate-900">
                 Sign in to your account
@@ -259,7 +259,7 @@ export default function Login() {
             )}
 
             {loginType === "staff" && (
-              <p className="rounded-2xl bg-slate-50 p-3 text-sm leading-5 text-slate-700">
+              <p className="rounded-2xl bg-slate-50 p-2.5 text-sm leading-5 text-slate-700">
                 First time? Your Seth gives you an Employee ID. You will set your PIN after your first login.
               </p>
             )}
@@ -268,7 +268,7 @@ export default function Login() {
               {loading ? "Logging in..." : loginType === "seth" ? "Login · लॉगिन" : "Log in"} <ArrowRight size={17} />
             </button>
 
-            <div className="flex min-h-11 items-center justify-between gap-3 text-sm font-bold">
+            <div className="flex min-h-10 items-center justify-between gap-3 text-sm font-bold">
               <button type="button" onClick={() => setStep(2)} className={`min-h-11 ${accent.link}`}>
                 {loginType === "seth" ? "Forgot password?" : "Forgot PIN?"}
               </button>
@@ -279,7 +279,7 @@ export default function Login() {
               )}
             </div>
             {loginType === "seth" && (
-              <p className="absolute bottom-3 left-0 flex min-h-8 w-full items-center justify-center gap-2 text-xs font-semibold text-slate-500">
+              <p className="mt-auto flex min-h-8 items-center justify-center gap-2 text-xs font-semibold text-slate-600">
                 <LockKeyhole size={16} /> Encrypted · Works offline
               </p>
             )}
@@ -287,16 +287,9 @@ export default function Login() {
         )}
 
         {step === 2 && (
-          <div className="space-y-5">
-            <div>
-              <h2 className="text-xl font-extrabold text-slate-900">
-                {loginType === "seth" ? "Forgot password?" : "Forgot PIN?"}
-              </h2>
-              <p className="mt-1 text-sm text-slate-600">Reset your {loginType === "seth" ? "password" : "PIN"} using a phone or email OTP.</p>
-            </div>
-
+          <div className="space-y-1">
             {!otpSent ? (
-              <form onSubmit={handleSendOtp} className="space-y-5">
+              <form onSubmit={handleSendOtp} className="space-y-3">
                 <div className="grid grid-cols-2 gap-2 rounded-2xl bg-slate-100 p-1">
                   {["phone", "email"].map((method) => (
                     <button
@@ -327,24 +320,24 @@ export default function Login() {
                 </button>
               </form>
             ) : (
-              <form onSubmit={handleResetPassword} className="space-y-4">
+              <form onSubmit={handleResetPassword} className="space-y-1.5">
                 {demoOtp && (
                   <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-center text-sm font-bold text-emerald-800">
                     Demo OTP: {demoOtp}
                   </p>
                 )}
                 <div>
-                  <p className="mb-2 text-[13px] font-bold text-slate-700">Enter 6-digit OTP</p>
+                  <p className="mb-0.5 text-[13px] font-bold text-slate-700">Enter 6-digit OTP</p>
                   <OtpInput length={6} value={forgotOtp} onChange={setForgotOtp} onComplete={setForgotOtp} accent={role} />
                 </div>
                 {userRole === "staff" ? (
                   <>
                     <div>
-                      <p className="mb-2 text-[13px] font-bold text-slate-700">New PIN</p>
+                      <p className="mb-1 text-[13px] font-bold text-slate-700">New PIN</p>
                       <PinBoxes value={newPassword} onChange={setNewPassword} accent={role} />
                     </div>
                     <div>
-                      <p className="mb-2 text-[13px] font-bold text-slate-700">Confirm PIN</p>
+                      <p className="mb-1 text-[13px] font-bold text-slate-700">Confirm PIN</p>
                       <PinBoxes value={confirmNewPassword} onChange={setConfirmNewPassword} accent={role} />
                     </div>
                   </>
@@ -354,6 +347,7 @@ export default function Login() {
                       label="New password"
                       icon={KeyRound}
                       accent={role}
+                      compact
                       type={showNewPassword ? "text" : "password"}
                       value={newPassword}
                       onChange={(event) => setNewPassword(event.target.value)}
@@ -366,6 +360,7 @@ export default function Login() {
                       label="Confirm password"
                       icon={LockKeyhole}
                       accent={role}
+                      compact
                       type={showConfirmPassword ? "text" : "password"}
                       value={confirmNewPassword}
                       onChange={(event) => setConfirmNewPassword(event.target.value)}
@@ -382,7 +377,7 @@ export default function Login() {
                 <button
                   type="button"
                   onClick={() => { setOtpSent(false); setForgotOtp(""); }}
-                  className={`min-h-11 w-full text-sm font-bold ${accent.link}`}
+                    className={`min-h-11 w-full text-sm font-bold ${accent.link}`}
                 >
                   Send another OTP
                 </button>
@@ -395,7 +390,7 @@ export default function Login() {
         )}
 
         {step === 3 && (
-          <form onSubmit={handleSetPin} className="space-y-5">
+          <form onSubmit={handleSetPin} className="space-y-3">
             <div>
               <h2 className="text-xl font-extrabold text-slate-900">Create a secure PIN</h2>
               <p className="mt-1 text-sm text-slate-600">Use this PIN the next time you sign in.</p>
@@ -408,11 +403,11 @@ export default function Login() {
               readOnly
             />
             <div>
-              <p className="mb-2 text-[13px] font-bold text-slate-700">New PIN</p>
+              <p className="mb-1 text-[13px] font-bold text-slate-700">New PIN</p>
               <PinBoxes value={pin} onChange={setPin} accent={role} />
             </div>
             <div>
-              <p className="mb-2 text-[13px] font-bold text-slate-700">Confirm PIN</p>
+              <p className="mb-1 text-[13px] font-bold text-slate-700">Confirm PIN</p>
               <PinBoxes value={confirmPin} onChange={setConfirmPin} accent={role} />
             </div>
             <button type="submit" disabled={loading} className={`${buttonBase} ${accent.button}`}>

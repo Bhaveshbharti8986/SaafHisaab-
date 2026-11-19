@@ -1,6 +1,6 @@
 import React from "react";
 import { ArrowLeft } from "lucide-react";
-import { CharacterForRole } from "./characters.jsx";
+import { CharacterForRole } from "../Characters.jsx";
 
 export const authHeroGradients = {
   seth: "linear-gradient(160deg, #2563eb 0%, #1e3a8a 100%)",
@@ -13,12 +13,12 @@ export default function AuthHero({
   title,
   eyebrow,
   subtitle,
-  height = 270,
+  height = "clamp(170px, 30dvh, 270px)",
   onBack,
 }) {
   return (
     <header
-      className="relative isolate overflow-hidden"
+      className="relative isolate shrink-0 overflow-hidden"
       style={{ height, backgroundImage: authHeroGradients[role] || authHeroGradients.seth }}
     >
       {onBack && (
@@ -31,7 +31,7 @@ export default function AuthHero({
           <ArrowLeft size={20} />
         </button>
       )}
-      <div className="absolute left-5 top-[76px] z-10 max-w-[190px]">
+      <div className="absolute left-5 top-[clamp(52px,9dvh,76px)] z-10 max-w-[190px]">
         {eyebrow && (
           <p className="mb-1 text-[11px] font-extrabold uppercase tracking-[.15em] text-white/85">
             {eyebrow}
@@ -42,7 +42,7 @@ export default function AuthHero({
       </div>
       <CharacterForRole
         role={role}
-        className="absolute bottom-5 right-[14px] h-[132px] w-[162px] drop-shadow-lg"
+        className="absolute bottom-7 right-[10px] h-[clamp(110px,20dvh,180px)] w-[clamp(110px,20dvh,180px)] drop-shadow-lg"
       />
     </header>
   );

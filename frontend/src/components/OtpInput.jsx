@@ -70,7 +70,7 @@ export default function OtpInput({ length = 6, onComplete, onChange, value, acce
           onChange={(e) => handleChange(e, index)}
           onKeyDown={(e) => handleKeyDown(e, index)}
           onPaste={handlePaste}
-          className={`h-14 min-w-0 max-w-12 flex-1 rounded-2xl border-[1.5px] border-slate-400 bg-white text-center text-2xl font-extrabold text-slate-900 shadow-field outline-none transition focus:ring-4 ${focusClass}`}
+          className={`h-11 min-w-0 max-w-11 flex-1 rounded-xl border-[1.5px] border-slate-500 bg-white text-center text-xl font-extrabold text-slate-900 shadow-[0_2px_4px_rgba(15,23,42,.08),0_8px_18px_rgba(15,23,42,.07)] outline-none transition focus:ring-4 ${focusClass}`}
         />
       ))}
     </div>

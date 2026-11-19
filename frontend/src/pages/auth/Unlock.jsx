@@ -3,7 +3,7 @@ import { Delete, LogOut } from "lucide-react";
 import { api } from "../../lib/api.js";
 import { showToast } from "../../lib/toast.js";
 import { decodeToken } from "../../lib/jwt.js";
-import { CharacterForRole } from "../../components/auth/characters.jsx";
+import { CharacterForRole } from "../../components/Characters.jsx";
 
 const keypad = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "", "0", "backspace"];
 

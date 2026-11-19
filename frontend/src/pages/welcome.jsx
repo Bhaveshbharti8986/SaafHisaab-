@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ChevronRight, UserRoundPlus } from "lucide-react";
 import { useLocation } from "wouter";
 import SaafHisaabLogo from "./SaafHisaabLogo";
-import { CharacterForRole } from "../components/auth/characters.jsx";
+import { CharacterForRole } from "../components/Characters.jsx";
 
 const roles = [
   { role: "seth", title: "I am Seth", hindi: "सेठ" },
