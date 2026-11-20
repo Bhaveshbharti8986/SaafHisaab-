@@ -78,45 +78,77 @@ export default function FarmerDetail() {
 
   function sendWhatsAppReceipt(txn) {
     if (!farmer) return;
-    const dateStr = new Date(txn.date || txn.createdAt).toLocaleDateString(language === "hi" ? "hi-IN" : "en-IN");
-    let message = '';
+    const locale = language === "hi" ? "hi-IN" : "en-IN";
+    const dateStr = new Intl.DateTimeFormat(locale, {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    }).format(new Date(txn.date || txn.createdAt));
+    const formatReceiptWeight = (weight) => `${Number(weight ?? 0).toLocaleString(locale, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })} ${t("kg")}`;
+    const formatReceiptAmount = (amount) => `₹${Number(amount ?? 0).toLocaleString(locale, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`;
+    let lines = [];
 
     if (txn.type === 'delivery') {
       const cropName = txn.cropType ? txn.cropType.charAt(0).toUpperCase() + txn.cropType.slice(1) : '';
-      message = `*Rular Ledger ${t("Crop Delivery")}*\n--------------------\n${t("Farmer")}: ${farmer.name}\n${t("Date")}: ${dateStr}\n`;
-      if (cropName) message += `${t("Crop")}: ${t(cropName)}\n`;
-      message += `\n`;
-      
-      if (txn.bagWeights && txn.bagWeights.length > 0) {
-        message += `📦 *${txn.bagWeights.length} ${t("Individual Bags")}:*\n`;
-        txn.bagWeights.forEach((w, i) => {
-          message += `${i + 1}. ${w}kg\n`;
-        });
-        message += `\n`;
-      }
-      
-      message += `*Summary:*\n`;
-      message += `• ${t("Total Weight")}: ${formatWeight(txn.totalWeight)}\n`;
-      if ((txn.kardaWeight || 0) > 0) {
-        message += `• ${t("Karda Cut")}: -${formatWeight(txn.kardaWeight)}\n`;
-      }
-      message += `• ${t("Net Weight")}: ${formatWeight(txn.netWeight ?? txn.totalWeight)}\n`;
-      message += `• ${t("Rate")}: ₹${txn.ratePerKg}/kg\n`;
-      message += `• ${t("Gross")}: +${formatINR((txn.netWeight ?? txn.totalWeight) * txn.ratePerKg)}\n`;
-      if ((txn.palledariAmount || 0) > 0) {
-        message += `• 👷 ${t("Palledari")}: -${formatINR(txn.palledariAmount)}\n`;
-      }
-      
-      message += `--------------------\n*${t("Net Amount")}: ${formatINR(txn.netAmount ?? txn.amount)}*\n\n${t("Thank you for trading with us!")}`;
+      const bagWeights = Array.isArray(txn.bagWeights) ? txn.bagWeights : [];
+      const totalWeight = Number(txn.totalWeight ?? 0);
+      const netWeight = Number(txn.netWeight ?? txn.totalWeight ?? 0);
+      const ratePerKg = Number(txn.ratePerKg ?? 0);
+      const grossAmount = Math.round(netWeight * ratePerKg * 100) / 100;
+      lines = [
+        "🌾 *SaafHisaab Mandi*",
+        `*${t("Crop Delivery Receipt")}*`,
+        "━━━━━━━━━━━━━━━━━━━━",
+        `👨‍🌾 *${t("Farmer")}:* ${farmer.name}`,
+        `📅 *${t("Date")}:* ${dateStr}`,
+        ...(cropName ? [`🌱 *${t("Crop")}:* ${t(cropName)}`] : []),
+        ...(bagWeights.length > 0 ? [
+          "",
+          `📦 *${t("Individual Bags")} (${bagWeights.length})*`,
+          ...bagWeights.map((weight, index) => `${String(index + 1).padStart(2, "0")}. ${formatReceiptWeight(weight)}`),
+        ] : []),
+        "",
+        `📊 *${t("Delivery Summary")}*`,
+        `• ${t("Total Weight")}: ${formatReceiptWeight(totalWeight)}`,
+        ...((Number(txn.kardaWeight) || 0) > 0 ? [`• ${t("Karda Cut")}: -${formatReceiptWeight(txn.kardaWeight)}`] : []),
+        `• ${t("Net Weight")}: ${formatReceiptWeight(netWeight)}`,
+        `• ${t("Rate")}: ${formatReceiptAmount(ratePerKg)}/${t("kg")}`,
+        `• ${t("Gross Amount")}: ${formatReceiptAmount(grossAmount)}`,
+        ...((Number(txn.palledariAmount) || 0) > 0 ? [`• 👷 ${t("Palledari")}: -${formatReceiptAmount(txn.palledariAmount)}`] : []),
+        "━━━━━━━━━━━━━━━━━━━━",
+        `✅ *${t("Net Amount")}: ${formatReceiptAmount(txn.netAmount ?? txn.amount)}*`,
+        "",
+        t("Thank you for trading with us!"),
+      ];
     } else {
-      const netCrop = formatINR(txn.cropAmount || 0);
-      const recovery = formatINR((txn.jamaRecovered || 0) + (txn.advanceRecovered || 0) + (txn.interestRecovered || 0));
-      const chhoot = txn.chhootAmount ? `\n${t("Chhoot (Bonus)")}: +${formatINR(txn.chhootAmount)}` : '';
-      const payout = formatINR(txn.amount || 0);
-
-      message = `*Rular Ledger ${t("Receipt")}*\n--------------------\n${t("Farmer")}: ${farmer.name}\n${t("Date")}: ${dateStr}\n\n${t("Crop Value")}: ${netCrop}\n${t("Total Recovery/Udhar")}: -${recovery}${chhoot}\n--------------------\n*${t("Final Settlement Payout")}: ${payout}*\n\n${t("Thank you for trading with us!")}`;
+      const cropValue = Number(txn.cropAmount || 0);
+      const recovery = Number(txn.jamaRecovered || 0) + Number(txn.advanceRecovered || 0) + Number(txn.interestRecovered || 0);
+      const chhoot = Number(txn.chhootAmount || 0);
+      lines = [
+        "🌾 *SaafHisaab Mandi*",
+        `*${t("Settlement Receipt")}*`,
+        "━━━━━━━━━━━━━━━━━━━━",
+        `👨‍🌾 *${t("Farmer")}:* ${farmer.name}`,
+        `📅 *${t("Date")}:* ${dateStr}`,
+        "",
+        `📊 *${t("Settlement Summary")}*`,
+        `• ${t("Crop Value")}: ${formatReceiptAmount(cropValue)}`,
+        `• ${t("Total Recovery/Udhar")}: -${formatReceiptAmount(recovery)}`,
+        ...(chhoot > 0 ? [`• ${t("Chhoot (Bonus)")}: +${formatReceiptAmount(chhoot)}`] : []),
+        "━━━━━━━━━━━━━━━━━━━━",
+        `✅ *${t("Final Settlement Payout")}: ${formatReceiptAmount(txn.amount)}*`,
+        "",
+        t("Thank you for trading with us!"),
+      ];
     }
 
+    const message = lines.join("\n");
     const encoded = encodeURIComponent(message);
     const phone = farmer.phone ? farmer.phone.replace(/\D/g, '') : '';
     const url = phone ? `https://wa.me/91${phone}?text=${encoded}` : `https://wa.me/?text=${encoded}`;

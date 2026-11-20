@@ -427,6 +427,8 @@ const hindi = {
   "Crop": "फसल",
   "Crop Delivery Receipt": "फसल आवक रसीद",
   "Delivery Summary": "आवक का सार",
+  "Settlement Receipt": "निपटान रसीद",
+  "Settlement Summary": "निपटान का सार",
   "Wheat": "गेहूँ",
   "Maize": "मक्का",
   "Rice": "चावल",
