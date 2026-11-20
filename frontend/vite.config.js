@@ -14,9 +14,9 @@ export default defineConfig(({ mode }) => {
         devOptions: { enabled: true },
         includeAssets: ["icon-192.png", "icon-512.png"],
         manifest: {
-          name: 'SaafHisaab',
+          name: 'SaafHisaab Mandi',
           short_name: 'SaafHisaab',
-          description: 'SaafHisaab — Mandi accounting & staff portal',
+          description: 'Mandi accounts, crop weighing, stock, and staff management.',
           theme_color: '#05080F',
           background_color: '#05080F',
           display: 'standalone',

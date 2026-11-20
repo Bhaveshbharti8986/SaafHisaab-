@@ -230,9 +230,9 @@ export default function Login() {
     : step === 2
       ? { title: loginType === "seth" ? "Reset password" : "Reset your PIN", eyebrow: "Account recovery", subtitle: "Verify your identity with a one-time code" }
       : {
-          title: loginType === "seth" ? "Seth Login" : role === "munshi" ? "Munshi Login" : "Labour Login",
-          eyebrow: role === "seth" ? "SETH · सेठ" : role === "munshi" ? "MUNSHI · मुंशी" : "LABOUR · मज़दूर",
-          subtitle: loginType === "seth" ? "Open your khata" : "Open your account",
+          title: loginType === "seth" ? "Owner Sign In" : role === "munshi" ? "Accountant Sign In" : "Staff Sign In",
+          eyebrow: role === "seth" ? "MANDI OWNER · सेठ" : role === "munshi" ? "ACCOUNTANT / CLERK · मुंशी" : "WEIGHING STAFF · मज़दूर",
+          subtitle: "Sign in to your mandi account",
         };
 
   return (
@@ -290,12 +290,12 @@ export default function Login() {
 
             {loginType === "staff" && (
               <p className="rounded-2xl bg-slate-50 p-2.5 text-sm leading-5 text-slate-700">
-                First time? Your Seth gives you an Employee ID. You will set your PIN after your first login.
+                First time? Ask your Mandi Owner for your Employee ID. You will create a 4-digit PIN when you first sign in.
               </p>
             )}
 
             <button type="submit" disabled={loading} className={`${buttonBase} ${accent.button}`}>
-              {loading ? "Logging in..." : loginType === "seth" ? "Login · लॉगिन" : "Log in"} <ArrowRight size={17} />
+              {loading ? "Signing in..." : "Sign in · लॉगिन"} <ArrowRight size={17} />
             </button>
 
             <div className="flex min-h-10 items-center justify-between gap-3 text-sm font-bold">

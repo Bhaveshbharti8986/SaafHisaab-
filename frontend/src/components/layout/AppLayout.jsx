@@ -123,8 +123,8 @@ export default function AppLayout({ children, title, showBack, munsiMode }) {
       <span className="text-[12px] uppercase tracking-[0.3em] font-black text-emerald-300 ">
         {title}
       </span>
-      <span className="text-[18px] font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white to-blue-200 leading-none">
-        Saaf<span className="text-cyan-400">Hisaab</span>
+      <span className="text-[16px] font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white to-blue-200 leading-none">
+        Saaf<span className="text-cyan-400">Hisaab</span> Mandi
       </span>
     </div>
 

@@ -5,6 +5,11 @@ import { api } from "../lib/api.js";
 import { showToast } from "../lib/toast.js";
 import { motion, AnimatePresence } from "framer-motion";
 
+const employeeRoleLabel = (role) => ({
+  munsi: "Accountant / Clerk",
+  labour: "Weighing Staff",
+}[role] || "Staff");
+
 export default function Employees() {
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -81,7 +86,7 @@ export default function Employees() {
                       activeTab === tab ? 'bg-white shadow-sm text-blue-600' : 'text-gray-500 hover:text-gray-700'
                     }`}
                   >
-                    {tab}
+                  {tab === "all" ? "All" : employeeRoleLabel(tab)}
                   </button>
                 ))}
               </div>
@@ -92,12 +97,12 @@ export default function Employees() {
               <div className="text-center py-12 bg-white rounded-2xl shadow-sm border border-gray-100 mt-4">
                 <UserCircle size={48} className="mx-auto text-gray-300 mb-3" />
                 <p className="text-gray-500 font-medium">No employees registered yet.</p>
-                <p className="text-sm text-gray-400 mt-1">Add your Munsi or Labour to get started.</p>
+                <p className="text-sm text-gray-400 mt-1">Add an accountant / clerk or weighing staff member to get started.</p>
               </div>
             ) : filteredEmployees.length === 0 ? (
               <div className="text-center py-12 bg-white rounded-2xl shadow-sm border border-gray-100">
                 <UserCircle size={48} className="mx-auto text-gray-300 mb-3" />
-                <p className="text-gray-500 font-medium">No {activeTab} employees found.</p>
+                <p className="text-gray-500 font-medium">No {employeeRoleLabel(activeTab)} found.</p>
               </div>
             ) : (
               <div className="space-y-3">
@@ -117,7 +122,7 @@ export default function Employees() {
                         <h3 className="font-bold text-gray-900 flex items-center gap-2">
                           {emp.name} 
                           <span className="text-[10px] uppercase bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full font-bold">
-                            {emp.role}
+                            {employeeRoleLabel(emp.role)}
                           </span>
                         </h3>
                         <div className="flex flex-col gap-0.5 mt-1">
@@ -180,14 +185,14 @@ export default function Employees() {
                       onClick={() => setForm({ ...form, role: "munsi" })}
                       className={`p-3 rounded-xl border-2 flex items-center justify-center gap-2 font-bold transition-colors ${form.role === 'munsi' ? 'border-teal-500 bg-teal-50 text-teal-700' : 'border-gray-100 bg-gray-50 text-gray-400'}`}
                     >
-                      <Briefcase size={18}/> Munsi
+                      <Briefcase size={18}/> Accountant / Clerk
                     </button>
                     <button
                       type="button"
                       onClick={() => setForm({ ...form, role: "labour" })}
                       className={`p-3 rounded-xl border-2 flex items-center justify-center gap-2 font-bold transition-colors ${form.role === 'labour' ? 'border-orange-500 bg-orange-50 text-orange-700' : 'border-gray-100 bg-gray-50 text-gray-400'}`}
                     >
-                      <User size={18}/> Labour
+                      <User size={18}/> Weighing Staff
                     </button>
                   </div>
                 </div>

@@ -30,6 +30,13 @@ export default function Settings() {
   const isMunsi = profile.role === "munsi";
   const isLabour = profile.role === "labour";
   const isRestricted = isMunsi || isLabour;
+  const roleLabel = isSeth
+    ? "Mandi Owner (Seth)"
+    : isMunsi
+      ? "Accountant / Clerk (Munshi)"
+      : isLabour
+        ? "Weighing Staff"
+        : "Account";
   const hasPendingContactChange = ["phone", "email"].some(field => {
     const current = field === "email"
       ? (profile[field] || "").trim().toLowerCase()
@@ -275,9 +282,9 @@ export default function Settings() {
             </button>
           </div>
           <h2 className="text-white font-bold text-xl flex items-center gap-2">
-            {profile.ownerName || (isLabour ? "Labour" : isMunsi ? "Munsi" : "Admin")}
+            {profile.ownerName || roleLabel}
             <span className="text-[10px] uppercase bg-white/20 text-white px-2 py-0.5 rounded-full font-bold">
-              {profile.role || "seth"}
+              {roleLabel}
             </span>
           </h2>
           <p className="text-white/70 text-sm font-semibold tracking-wider mt-1">{profile.employeeId || "ADMIN"}</p>

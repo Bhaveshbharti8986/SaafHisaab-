@@ -30,7 +30,7 @@ export default function SaafHisaabLogo({
         width={size}
         height={size}
         role="img"
-        aria-label="SaafHisaab logo"
+        aria-label="SaafHisaab Mandi logo"
       >
         <circle cx="100" cy="34" r="13" stroke={accent} strokeWidth="6" fill={background} />
         <circle cx="100" cy="34" r="5" fill={primary} />
@@ -53,7 +53,7 @@ export default function SaafHisaabLogo({
       width={size}
       height={size}
       role="img"
-      aria-label="SaafHisaab logo"
+      aria-label="SaafHisaab Mandi logo"
     >
       {/* Pivot ring */}
       <motion.circle

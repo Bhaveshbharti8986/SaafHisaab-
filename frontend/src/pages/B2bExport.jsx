@@ -50,7 +50,7 @@ export default function B2bExport() {
   }
 
   async function toggleUnpaid(id) {
-    if (confirm("Are you sure you want to mark this as Unpaid? This will deduct the amount from the Seth Wallet.")) {
+    if (confirm("Are you sure you want to mark this as Unpaid? This will deduct the amount from the Mandi Owner's balance.")) {
       try {
         const updated = await api.patch(`/b2b-dispatches/${id}`, { paidAmount: 0 });
         setDispatches(p => p.map(x => x._id === id ? updated : x));

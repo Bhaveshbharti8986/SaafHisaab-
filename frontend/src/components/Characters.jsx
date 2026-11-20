@@ -6,7 +6,7 @@ import labourImage from "../assets/characters/labour.png";
 
 export function SethCharacter({
   className = "",
-  title = "Seth with ledger",
+  title = "Mandi owner with ledger",
 }) {
   return (
     <img
@@ -20,7 +20,7 @@ export function SethCharacter({
 
 export function MunshiCharacter({
   className = "",
-  title = "Munshi with clipboard",
+  title = "Accountant or clerk with clipboard",
 }) {
   return (
     <img
@@ -34,7 +34,7 @@ export function MunshiCharacter({
 
 export function LabourCharacter({
   className = "",
-  title = "Labour with sack",
+  title = "Weighing staff with sack",
 }) {
   return (
     <img

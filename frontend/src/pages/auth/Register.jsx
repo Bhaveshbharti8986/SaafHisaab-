@@ -122,7 +122,7 @@ export default function Register() {
       localStorage.setItem("accessToken", res.accessToken);
       sessionStorage.setItem("unlocked", "true");
       sessionStorage.setItem("showWelcomeSplash", "true");
-      showToast("success", "Mandi Registered Successfully!");
+      showToast("success", "Mandi account created successfully!");
       window.location.href = "/";
     } catch (err) {
       showToast("error", err.message || "Registration failed");
@@ -150,7 +150,7 @@ export default function Register() {
   };
 
   const heroTitles = {
-    1: { title: "Your details", subtitle: "Start with your Seth account" },
+    1: { title: "Your details", subtitle: "Set up your Mandi Owner account" },
     2: { title: "Business details", subtitle: "Tell us about your mandi" },
     3: { title: "Verify your details", subtitle: "Enter the codes sent to your phone and email" },
   };
@@ -186,7 +186,7 @@ export default function Register() {
               compact
               value={form.ownerName}
               onChange={updateForm("ownerName")}
-              placeholder="Owner / Seth name"
+              placeholder="Mandi owner name"
               autoComplete="name"
               required
             />

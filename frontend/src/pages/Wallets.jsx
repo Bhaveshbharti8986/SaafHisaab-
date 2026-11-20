@@ -61,7 +61,7 @@ export default function Wallets() {
   async function handleTransfer(e) {
     e.preventDefault();
     if (!transferAmount) return;
-    const notes = transferDirection === "seth_to_munsi" ? "Transfer to Munsi" : "Transfer to Seth";
+    const notes = transferDirection === "seth_to_munsi" ? "Transfer to Staff" : "Transfer to Owner";
     try {
       await api.post("/fund-transfers", { amount: parseFloat(transferAmount), notes, direction: transferDirection });
       setTransferAmount("");
@@ -99,11 +99,11 @@ export default function Wallets() {
             <div className="absolute top-0 right-0 p-4 opacity-10"><UserCircle size={80} /></div>
             <div className="flex justify-between items-start relative z-10">
               <div>
-                <p className="text-white/60 font-bold uppercase tracking-widest text-[10px] mb-1">Seth Treasury</p>
+                <p className="text-white/60 font-bold uppercase tracking-widest text-[10px] mb-1">Owner's Balance</p>
                 <p className={`text-3xl font-black ${sethBalance < 0 ? 'text-rose-400' : ''}`}>{formatINR(sethBalance)}</p>
               </div>
               <button onClick={() => { setTransferDirection("seth_to_munsi"); setShowTransfer(true); }} className="bg-[#2a6c4a] hover:bg-[#348259] text-white text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow-lg shadow-green-900/50 transition-colors">
-                <ArrowRightLeft size={14} /> Send to Munsi
+                <ArrowRightLeft size={14} /> Send to Staff
               </button>
             </div>
           </div>
@@ -114,11 +114,11 @@ export default function Wallets() {
           <div className="absolute top-0 right-0 p-4 opacity-20"><Wallet size={80} /></div>
           <div className="flex justify-between items-start relative z-10">
             <div>
-              <p className="text-teal-50 font-bold uppercase tracking-widest text-[10px] mb-1">Munsi Galla</p>
+              <p className="text-teal-50 font-bold uppercase tracking-widest text-[10px] mb-1">Staff Cash Balance</p>
               <p className={`text-3xl font-black ${munsiBalance < 0 ? 'text-rose-400' : ''}`}>{formatINR(munsiBalance)}</p>
             </div>
             <button onClick={() => { setTransferDirection("munsi_to_seth"); setShowTransfer(true); }} className="bg-[#2a6c4a] hover:bg-[#348259] text-white text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow-lg shadow-green-900/50 transition-colors">
-              <ArrowRightLeft size={14} /> Send to Seth
+              <ArrowRightLeft size={14} /> Send to Owner
             </button>
           </div>
         </div>
@@ -164,7 +164,7 @@ export default function Wallets() {
               <ArrowRightLeft size={16} className="text-gray-400" />
               <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600"><User size={16} /></div>
               <span className="font-bold text-gray-800 ml-1">
-                {transferDirection === "seth_to_munsi" ? "Transfer to Munsi" : "Transfer to Seth"}
+                {transferDirection === "seth_to_munsi" ? "Transfer to Staff" : "Transfer to Owner"}
               </span>
             </div>
             <input type="number" required placeholder="Amount (₹)" value={transferAmount} onChange={e => setTransferAmount(e.target.value)} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 mb-3" />
@@ -179,8 +179,8 @@ export default function Wallets() {
           <form onSubmit={addExpense} className="bg-white rounded-2xl border border-gray-100 p-4 space-y-4 shadow-sm mb-4">
             <h3 className="font-bold text-gray-800 text-sm">New Expense</h3>
             <div className="flex gap-2 p-1 bg-gray-100 rounded-xl mb-3">
-              <button type="button" onClick={() => setForm(p => ({ ...p, paidBy: "seth" }))} className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-colors ${form.paidBy === "seth" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500"}`}>Seth Paid</button>
-              <button type="button" onClick={() => setForm(p => ({ ...p, paidBy: "munsi" }))} className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-colors ${form.paidBy === "munsi" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500"}`}>Munsi Paid</button>
+              <button type="button" onClick={() => setForm(p => ({ ...p, paidBy: "seth" }))} className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-colors ${form.paidBy === "seth" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500"}`}>Owner Paid</button>
+              <button type="button" onClick={() => setForm(p => ({ ...p, paidBy: "munsi" }))} className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-colors ${form.paidBy === "munsi" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500"}`}>Staff Paid</button>
             </div>
             <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
               {EXPENSE_TYPES.map(t => (
@@ -235,7 +235,7 @@ export default function Wallets() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-bold text-gray-900 text-sm">
-                        {isToMunsi ? "Seth → Munsi Transfer" : "Munsi → Seth Transfer"}
+                        {isToMunsi ? "Owner → Staff Transfer" : "Staff → Owner Transfer"}
                       </p>
                       <div className="flex items-center gap-2 mt-1">
                         <span className="text-[10px] text-gray-500 font-semibold">

@@ -409,7 +409,7 @@ export default function FarmerDetail() {
                             }} 
                             className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-colors ${settlePaidBy === "seth" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500"}`}
                           >
-                            Seth Paid
+                            Owner Paid
                           </button>
                           <button 
                             type="button" 
@@ -419,7 +419,7 @@ export default function FarmerDetail() {
                             }} 
                             className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-colors ${settlePaidBy === "munsi" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500"}`}
                           >
-                            Munsi Paid
+                            Staff Paid
                           </button>
                         </div>
                       </div>
@@ -932,8 +932,8 @@ export default function FarmerDetail() {
             </div>
 
             <div className="flex gap-2 p-1 bg-gray-100 rounded-xl mb-3">
-              <button type="button" onClick={() => setTxnPaidBy("seth")} className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-colors ${txnPaidBy === "seth" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500"}`}>Seth</button>
-              <button type="button" onClick={() => setTxnPaidBy("munsi")} className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-colors ${txnPaidBy === "munsi" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500"}`}>Munsi</button>
+              <button type="button" onClick={() => setTxnPaidBy("seth")} className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-colors ${txnPaidBy === "seth" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500"}`}>Owner</button>
+              <button type="button" onClick={() => setTxnPaidBy("munsi")} className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-colors ${txnPaidBy === "munsi" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500"}`}>Staff</button>
             </div>
 
             <div>

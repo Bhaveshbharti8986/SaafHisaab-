@@ -56,7 +56,7 @@ export default function Dashboard() {
   ] : [];
 
   return (
-    <AppLayout title="Seth Dashboard">
+    <AppLayout title="Mandi Owner Dashboard">
       <div className="flex flex-col bg-gray-50 min-h-[calc(100vh-56px)] pb-24">
         
         {/* Top Header Section (PhonePe / Native App Style) */}
@@ -106,7 +106,7 @@ export default function Dashboard() {
                 <div className="flex justify-between items-start mb-2">
                   <div className="p-2 bg-blue-50 text-blue-600 rounded-full"><UserCircle size={20} /></div>
                 </div>
-                <p className="text-gray-500 font-semibold text-xs mb-0.5">Seth Treasury</p>
+                <p className="text-gray-500 font-semibold text-xs mb-0.5">Owner's Balance</p>
                 <p className={`text-lg font-bold ${summary.sethWalletBalance < 0 ? 'text-red-600' : 'text-gray-900'}`}>{formatINR(summary.sethWalletBalance)}</p>
               </div>
             </Link>
@@ -115,7 +115,7 @@ export default function Dashboard() {
                 <div className="flex justify-between items-start mb-2">
                   <div className="p-2 bg-teal-50 text-teal-600 rounded-full"><Wallet size={20} /></div>
                 </div>
-                <p className="text-gray-500 font-semibold text-xs mb-0.5">Munsi Cash</p>
+                <p className="text-gray-500 font-semibold text-xs mb-0.5">Staff Cash Balance</p>
                 <p className={`text-lg font-bold ${summary.munsiCashBalance < 0 ? 'text-red-600' : 'text-gray-900'}`}>{formatINR(summary.munsiCashBalance)}</p>
               </div>
             </Link>

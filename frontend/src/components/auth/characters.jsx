@@ -7,7 +7,7 @@ import React from "react";
 
 export function SethCharacter({
   className = "",
-  title = "Seth with ledger",
+  title = "Mandi owner with ledger",
 }) {
   const uid = React.useId().replace(/:/g, "");
 
@@ -190,7 +190,7 @@ export function SethCharacter({
 
 export function MunshiCharacter({
   className = "",
-  title = "Munshi with clipboard",
+  title = "Accountant or clerk with clipboard",
 }) {
   const uid = React.useId().replace(/:/g, "");
 
@@ -351,7 +351,7 @@ export function MunshiCharacter({
 
 export function LabourCharacter({
   className = "",
-  title = "Labour with sack",
+  title = "Weighing staff with sack",
 }) {
   const uid = React.useId().replace(/:/g, "");
 

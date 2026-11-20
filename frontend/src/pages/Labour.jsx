@@ -31,12 +31,12 @@ export default function Labour() {
   ];
 
   return (
-    <AppLayout title="Labour Terminal">
+    <AppLayout title="Weighing Staff Home">
       <div className="bg-gradient-to-b from-[#8b5cf6] to-[#7c3aed] px-4 pt-4 pb-12 rounded-b-[2rem] shadow-md relative z-0">
         <div className="flex justify-between items-center mb-4 px-1">
           <div>
-            <p className="text-purple-200 text-xs font-medium uppercase tracking-wider mb-1">Labour Operations</p>
-            <h2 className="text-white text-xl font-bold">Field Terminal</h2>
+            <p className="text-purple-200 text-xs font-medium uppercase tracking-wider mb-1">Weighing Staff</p>
+            <h2 className="text-white text-xl font-bold">Daily Work</h2>
           </div>
         </div>
       </div>

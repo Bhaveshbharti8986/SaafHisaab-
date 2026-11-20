@@ -81,8 +81,8 @@ export default function Expenses() {
           <form onSubmit={addExpense} className="bg-white rounded-3xl border border-gray-100 p-5 space-y-4 shadow-[0_4px_15px_rgba(0,0,0,0.03)] mb-4">
             <h3 className="font-bold text-gray-800 text-sm">New Expense</h3>
             <div className="flex gap-2 p-1 bg-gray-50 rounded-xl mb-3 border border-gray-100">
-              <button type="button" onClick={() => setForm(p => ({ ...p, paidBy: "seth" }))} className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-colors ${form.paidBy === "seth" ? "bg-white text-gray-900 shadow-[0_2px_8px_rgba(0,0,0,0.05)]" : "text-gray-500"}`}>Seth Paid</button>
-              <button type="button" onClick={() => setForm(p => ({ ...p, paidBy: "munsi" }))} className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-colors ${form.paidBy === "munsi" ? "bg-white text-gray-900 shadow-[0_2px_8px_rgba(0,0,0,0.05)]" : "text-gray-500"}`}>Munsi Paid</button>
+              <button type="button" onClick={() => setForm(p => ({ ...p, paidBy: "seth" }))} className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-colors ${form.paidBy === "seth" ? "bg-white text-gray-900 shadow-[0_2px_8px_rgba(0,0,0,0.05)]" : "text-gray-500"}`}>Owner Paid</button>
+              <button type="button" onClick={() => setForm(p => ({ ...p, paidBy: "munsi" }))} className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-colors ${form.paidBy === "munsi" ? "bg-white text-gray-900 shadow-[0_2px_8px_rgba(0,0,0,0.05)]" : "text-gray-500"}`}>Staff Paid</button>
             </div>
             <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
               {EXPENSE_TYPES.map(t => (

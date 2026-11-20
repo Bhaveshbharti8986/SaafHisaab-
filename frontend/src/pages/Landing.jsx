@@ -141,7 +141,7 @@ export default function Welcome() {
           >
             <Sparkles size={14} className="text-blue-300" />
             <span className="text-blue-100 text-xs font-bold uppercase tracking-widest">
-              Har Hisaab, Saaf Saaf
+              Mandi accounts & operations
             </span>
           </motion.div>
 
@@ -202,7 +202,7 @@ export default function Welcome() {
                       <div className="bg-slate-100 p-2 rounded-lg group-hover:bg-blue-50 transition-colors">
                         <Lock size={18} className="text-slate-600 group-hover:text-blue-600 transition-colors" />
                       </div>
-                      <span>Staff Login</span>
+                      <span>Sign in to your account</span>
                     </div>
                     <ChevronRight size={20} className="text-slate-400 group-hover:translate-x-1 transition-transform" />
                   </motion.button>

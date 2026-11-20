@@ -27,7 +27,7 @@ export default function Munsi() {
   ];
 
   return (
-    <AppLayout title="Munsi Terminal" munsiMode>
+    <AppLayout title="Accountant / Clerk Home" munsiMode>
       <DirectPurchaseSheet 
         isOpen={showPurchase} 
         onClose={() => {
@@ -38,8 +38,8 @@ export default function Munsi() {
       <div className="bg-gradient-to-b from-blue-800 to-blue-700 px-4 pt-4 pb-12 rounded-b-[2rem] shadow-md relative z-0">
         <div className="flex justify-between items-center mb-4 px-1">
           <div>
-            <p className="text-blue-200 text-xs font-medium uppercase tracking-wider mb-1">Munsi Operations</p>
-            <h2 className="text-white text-xl font-bold">Field Terminal</h2>
+            <p className="text-blue-200 text-xs font-medium uppercase tracking-wider mb-1">Accountant / Clerk · Munshi</p>
+            <h2 className="text-white text-xl font-bold">Daily Operations</h2>
           </div>
         </div>
         <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl p-5 flex items-center justify-between shadow-sm">
