@@ -588,7 +588,7 @@ export const getInterestDebtors = async (req, res) => {
 
   const debtors = await Farmer.aggregate([
     { $match: matchStage },
-    { $project: { name: 1, phone: 1, village: 1, advanceAmount: 1, accruedInterest: 1, totalOwed: { $add: ["$advanceAmount", "$accruedInterest"] } } },
+    { $project: { name: 1, phone: 1, village: 1, advanceAmount: 1, accruedInterest: 1, interestRate: 1, chargeInterest: 1, totalOwed: { $add: ["$advanceAmount", "$accruedInterest"] } } },
     { $sort: { totalOwed: -1 } },
     { $skip: skip },
     { $limit: limit }

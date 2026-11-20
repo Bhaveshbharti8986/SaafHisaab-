@@ -22,5 +22,7 @@ const farmerSchema = new mongoose.Schema({
 farmerSchema.index({ name: 1 });
 farmerSchema.index({ village: 1 });
 farmerSchema.index({ balance: 1 }); // for active farmer counts
+farmerSchema.index({ sethId: 1, name: 1, _id: 1 });
+farmerSchema.index({ sethId: 1, phone: 1, _id: 1 });
 
 export default mongoose.model("Farmer", farmerSchema);

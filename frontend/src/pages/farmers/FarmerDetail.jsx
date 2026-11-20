@@ -6,10 +6,18 @@ import { decodeToken } from "../../lib/jwt.js";
 import { formatINR, formatWeight } from "../../lib/format.js";
 import { getCropConfig, getAvatarColor, getInitials } from "../../lib/crop.js";
 import { showToast } from "../../lib/toast.js";
-import { MessageCircle } from "lucide-react";
+import { MessageCircle, X, Check, Banknote, QrCode, Percent, ChevronDown } from "lucide-react";
 import { useTranslation } from "../../lib/i18n.jsx";
+import SaafHisaabLogo from "../SaafHisaabLogo.jsx";
 
 const TABS = ["All", "Deliveries", "Payments", "Advances"];
+const PAYMENT_METHODS = [
+  { value: "Cash", label: "Cash", Icon: Banknote, tone: "bg-emerald-100 text-emerald-700" },
+  { value: "UPI", label: "UPI", Icon: QrCode, tone: "bg-indigo-100 text-indigo-700" },
+  { value: "PhonePe", label: "PhonePe", logo: "/payment-icons/phonepe.svg" },
+  { value: "GPay", label: "Google Pay", logo: "/payment-icons/google-pay.svg" },
+  { value: "Paytm", label: "Paytm", logo: "/payment-icons/paytm.svg" },
+];
 
 export default function FarmerDetail() {
   const { t, language } = useTranslation();
@@ -19,6 +27,7 @@ export default function FarmerDetail() {
   const [pending, setPending]   = useState([]);
   const [tab, setTab]           = useState("All");
   const [expandedId, setExpandedId] = useState(null);
+  const [interestDetailsOpen, setInterestDetailsOpen] = useState(false);
   const [timelineLimit, setTimelineLimit] = useState(30);
   const [notFound, setNotFound] = useState(false);
 
@@ -694,62 +703,107 @@ export default function FarmerDetail() {
         )}
 
         {/* ── Loan & Interest card ────────────────────────────────────────────── */}
-        {advancePrincipal > 0 && (
-          <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="font-bold text-gray-900">{t("Loan & Interest")}</h3>
-              <span className={`text-[10px] font-bold px-2 py-1 rounded-full ${chargeInterest ? "bg-red-100 text-red-600" : "bg-green-100 text-green-600"}`}>
-                {chargeInterest ? `${t("Market")} · ${interestRate}%/${t("month")}` : `${t("Friendly")} · 0% ${t("interest")}`}
-              </span>
+        {(advancePrincipal > 0 || accruedInterest > 0) && (
+          <section className="overflow-hidden rounded-3xl border border-amber-100 bg-white shadow-sm">
+            <div className="bg-gradient-to-br from-amber-50 via-white to-rose-50 p-4 sm:p-5">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex min-w-0 items-center gap-3">
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-amber-100 text-amber-700">
+                    <Percent size={20} />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-amber-700">{t("Loan account")}</p>
+                    <h3 className="truncate font-bold text-gray-900">{t("Loan & Interest")}</h3>
+                  </div>
+                </div>
+                <span className={`shrink-0 rounded-full px-3 py-1.5 text-[10px] font-bold ${
+                  chargeInterest ? "bg-amber-100 text-amber-800" : "bg-emerald-100 text-emerald-800"
+                }`}>
+                  {chargeInterest ? t("Interest active") : t("Interest paused")}
+                </span>
+              </div>
+
+              <div className="mt-4 rounded-2xl border border-white bg-white/80 p-4 shadow-sm">
+                <p className="text-xs font-semibold text-gray-500">{t("Total Outstanding (principal + interest)")}</p>
+                <p className="mt-1 text-2xl font-black tracking-tight text-gray-900">{formatINR(outstandingDebt)}</p>
+              </div>
+
+              <div className="mt-3 grid grid-cols-2 gap-3">
+                <div className="rounded-2xl border border-white bg-white/70 p-3">
+                  <p className="text-[11px] font-medium text-gray-500">{t("Principal")}</p>
+                  <p className="mt-1 font-bold text-red-700">{formatINR(advancePrincipal)}</p>
+                </div>
+                <div className="rounded-2xl border border-white bg-white/70 p-3">
+                  <p className="text-[11px] font-medium text-gray-500">{t("Accrued Interest")}</p>
+                  <p className="mt-1 font-bold text-amber-700">{formatINR(accruedInterest)}</p>
+                </div>
+              </div>
             </div>
 
-            {/* Interest Rate Slider */}
-            <div className="mb-4 bg-gray-50 p-3 rounded-xl border border-gray-100">
-              <div className="flex justify-between text-xs text-gray-500 mb-2">
-                <span>0%</span>
-                <span className="font-bold text-amber-700">{interestRate}% / month</span>
-                <span>5%</span>
-              </div>
-              <input
-                type="range"
-                min="0"
-                max="5"
-                step="0.5"
-                value={interestRate}
-                onChange={async (e) => {
-                  const val = parseFloat(e.target.value);
-                  const isCharging = val > 0;
-                  setFarmer(f => ({ ...f, interestRate: val, chargeInterest: isCharging }));
-                  await api.patch(`/farmers/${id}`, { interestRate: val, chargeInterest: isCharging });
-                }}
-                className="w-full accent-amber-500 cursor-pointer"
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-2 text-sm">
-              <div className="bg-gray-50 rounded-xl p-3">
-                <p className="text-[11px] text-gray-400">{t("Principal")}</p>
-                <p className="font-bold text-red-600">{formatINR(advancePrincipal)}</p>
-              </div>
-              <div className="bg-gray-50 rounded-xl p-3">
-                <p className="text-[11px] text-gray-400">{t("Accrued Interest")}</p>
-                <p className="font-bold text-amber-600">{formatINR(accruedInterest)}</p>
-              </div>
-              {chargeInterest && (
-                <div className="bg-amber-50 rounded-xl p-3 col-span-2">
-                  <p className="text-[11px] text-gray-400 mb-0.5">{t("Monthly Interest Formula")}</p>
-                  <p className="text-xs font-mono text-amber-700">
-                    ₹{advancePrincipal.toLocaleString()} × {interestRate}% = <span className="font-bold">+{formatINR(monthlyInterest)}/{t("month")}</span>
-                  </p>
+            <div className="border-t border-gray-100">
+              <button
+                type="button"
+                aria-expanded={interestDetailsOpen}
+                aria-controls="farmer-interest-details"
+                onClick={() => setInterestDetailsOpen(open => !open)}
+                className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left transition hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-amber-500 sm:px-5"
+              >
+                <span className="text-sm font-bold text-gray-800">{t("Monthly rate & estimate")}</span>
+                <span className="flex shrink-0 items-center gap-2 text-xs font-semibold text-amber-800">
+                  {interestDetailsOpen ? t("Hide details") : t("Show details")}
+                  <ChevronDown size={16} className={`transition-transform ${interestDetailsOpen ? "rotate-180" : ""}`} />
+                </span>
+              </button>
+
+              <div id="farmer-interest-details" hidden={!interestDetailsOpen} className="space-y-3 border-t border-gray-100 p-4 sm:p-5">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <label htmlFor="farmer-interest-rate" className="text-sm font-bold text-gray-900">{t("Monthly interest rate")}</label>
+                    <p className="mt-1 text-xs text-gray-500">{t("Choose 0% to stop interest.")}</p>
+                  </div>
+                  <span className="shrink-0 rounded-xl bg-amber-50 px-3 py-2 text-sm font-extrabold text-amber-800">
+                    {interestRate}% / {t("month")}
+                  </span>
                 </div>
-              )}
-              <div className={`rounded-xl p-3 col-span-2 ${outstandingDebt > 0 ? "bg-red-50" : "bg-green-50"}`}>
-                <p className="text-[11px] text-gray-400">{t("Total Outstanding (principal + interest)")}</p>
-                <p className={`font-bold text-lg ${outstandingDebt > 0 ? "text-red-700" : "text-green-600"}`}>
-                  {formatINR(outstandingDebt)}
-                </p>
+                <input
+                  id="farmer-interest-rate"
+                  type="range"
+                  min="0"
+                  max="5"
+                  step="0.5"
+                  value={interestRate}
+                  aria-label={t("Monthly interest rate")}
+                  onChange={async (e) => {
+                    const val = parseFloat(e.target.value);
+                    const isCharging = val > 0;
+                    setFarmer(f => ({ ...f, interestRate: val, chargeInterest: isCharging }));
+                    await api.patch(`/farmers/${id}`, { interestRate: val, chargeInterest: isCharging });
+                  }}
+                  className="w-full cursor-pointer accent-amber-500"
+                />
+                <div className="flex justify-between text-[11px] font-semibold text-gray-400">
+                  <span>0%</span>
+                  <span>5%</span>
+                </div>
+
+                {chargeInterest ? (
+                  <div className="flex flex-col gap-1 rounded-2xl bg-amber-50 p-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <p className="text-xs font-bold text-amber-900">{t("Estimated monthly interest")}</p>
+                      <p className="mt-0.5 text-[11px] text-amber-800">
+                        {formatINR(advancePrincipal)} × {interestRate}% / {t("month")}
+                      </p>
+                    </div>
+                    <p className="text-lg font-extrabold text-amber-800">{formatINR(monthlyInterest)}</p>
+                  </div>
+                ) : (
+                  <p className="rounded-2xl bg-emerald-50 px-3 py-2.5 text-xs font-medium text-emerald-800">
+                    {t("No monthly interest at 0%.")}
+                  </p>
+                )}
               </div>
             </div>
-          </div>
+          </section>
         )}
 
         {/* ── Timeline ────────────────────────────────────────────────────────── */}
@@ -943,15 +997,25 @@ export default function FarmerDetail() {
 
       {/* ── Transaction Modal ──────────────────────────────────────────────── */}
       {txnModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl w-full max-w-sm p-5 space-y-4 shadow-xl">
-            <div className="flex justify-between items-center">
-              <h3 className="font-bold text-lg text-gray-900">
-                {txnType === "payment" && t("Give Payment (To Farmer)")}
-                {txnType === "deposit" && t("Receive Cash (From Farmer)")}
-                {txnType === "advance" && t("Give Advance (Loan)")}
-              </h3>
-              <button onClick={() => setTxnModal(false)} aria-label={t("Close transaction form")} className="text-gray-400 font-bold text-xl hover:text-gray-600">✕</button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div role="dialog" aria-modal="true" className="max-h-[90vh] w-full max-w-md space-y-4 overflow-y-auto rounded-3xl bg-white p-5 shadow-xl">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex min-w-0 items-center gap-3">
+                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#2a6c4a]">
+                  <SaafHisaabLogo size={34} primary="#ffffff" accent="#86efac" />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#2a6c4a]">SaafHisaab Mandi</p>
+                  <h3 className="font-bold leading-tight text-gray-900">
+                    {txnType === "payment" && t("Give Payment (To Farmer)")}
+                    {txnType === "deposit" && t("Receive Cash (From Farmer)")}
+                    {txnType === "advance" && t("Give Advance (Loan)")}
+                  </h3>
+                </div>
+              </div>
+              <button type="button" onClick={() => setTxnModal(false)} aria-label={t("Close transaction form")} className="shrink-0 rounded-xl p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-700">
+                <X size={20} />
+              </button>
             </div>
             
             <div>
@@ -977,17 +1041,30 @@ export default function FarmerDetail() {
 
             <div>
               <label className="text-xs font-bold text-gray-500 mb-1 block">{t("Payment Mode")}</label>
-              <select 
-                value={txnMode} 
-                onChange={e => setTxnMode(e.target.value)} 
-                className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 font-bold text-sm focus:border-[#2a6c4a] focus:outline-none bg-white"
-              >
-                <option value="Cash">{t("Cash")}</option>
-                <option value="UPI">{t("UPI")}</option>
-                <option value="PhonePe">PhonePe</option>
-                <option value="GPay">{t("Google Pay")}</option>
-                <option value="Paytm">Paytm</option>
-              </select>
+              <div role="radiogroup" aria-label={t("Payment Mode")} className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                {PAYMENT_METHODS.map(({ value, label, Icon, logo, tone }) => {
+                  const selected = txnMode === value;
+                  return (
+                    <button
+                      key={value}
+                      type="button"
+                      role="radio"
+                      aria-checked={selected}
+                      onClick={() => setTxnMode(value)}
+                      className={`flex min-h-14 items-center gap-2 rounded-xl border p-2 text-left transition focus:outline-none focus:ring-2 focus:ring-[#2a6c4a]/30 ${
+                        selected ? "border-[#2a6c4a] bg-green-50 shadow-sm" : "border-gray-200 bg-white hover:border-gray-300"
+                      }`}
+                    >
+                      <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${logo ? "border border-gray-100 bg-white" : tone}`}>
+                        {logo ? <img src={logo} alt="" className="h-6 w-6 object-contain" /> : <Icon size={18} />}
+                      </span>
+                      <span className="min-w-0 flex-1 truncate text-xs font-bold text-gray-800">{t(label)}</span>
+                      {selected && <Check size={15} className="shrink-0 text-[#2a6c4a]" />}
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="mt-2 text-[11px] leading-4 text-gray-500">{t("This records the selected method; it does not transfer money.")}</p>
             </div>
 
             <button 

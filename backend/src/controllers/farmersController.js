@@ -1,9 +1,38 @@
+import mongoose from "mongoose";
 import Farmer from "../models/Farmer.js";
 import WeightEntry from "../models/WeightEntry.js";
 import Transaction from "../models/Transaction.js";
 import Settlement from "../models/Settlement.js";
 import InterestAccrual from "../models/InterestAccrual.js";
 import { accrueInterestForFarmer } from "../utils/interest.js";
+
+const ADVANCE_PICKER_PAGE_SIZE = 20;
+
+const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+const decodeAdvancePickerCursor = (cursor, field) => {
+  if (typeof cursor !== "string" || cursor.length > 512) return null;
+
+  try {
+    const parsed = JSON.parse(Buffer.from(cursor, "base64url").toString("utf8"));
+    if (
+      parsed?.field !== field ||
+      typeof parsed.value !== "string" ||
+      !mongoose.isValidObjectId(parsed.id)
+    ) {
+      return null;
+    }
+    return parsed;
+  } catch {
+    return null;
+  }
+};
+
+const encodeAdvancePickerCursor = (farmer, field) => Buffer.from(JSON.stringify({
+  field,
+  value: farmer[field],
+  id: String(farmer._id),
+})).toString("base64url");
 
 export const getFarmers = async (req, res) => {
   const { search, page = 1, limit = 50, paginate = false } = req.query;
@@ -21,6 +50,54 @@ export const getFarmers = async (req, res) => {
     const farmers = await Farmer.find(filter).sort({ name: 1 }).limit(search ? 50 : 200);
     return res.json(farmers);
   }
+};
+
+export const getAdvanceFarmerCandidates = async (req, res) => {
+  const search = typeof req.query.search === "string" ? req.query.search.trim() : "";
+  if (search.length < 2) {
+    return res.json({ farmers: [], nextCursor: null, minSearchLength: 2 });
+  }
+  if (search.length > 80) {
+    return res.status(400).json({ error: "Search term is too long" });
+  }
+
+  const isPhoneSearch = /^(?=.*\d)[\d+\s().-]+$/.test(search);
+  const field = isPhoneSearch ? "phone" : "name";
+  const cursor = req.query.cursor
+    ? decodeAdvancePickerCursor(req.query.cursor, field)
+    : null;
+  if (req.query.cursor && !cursor) {
+    return res.status(400).json({ error: "Invalid farmer search cursor" });
+  }
+
+  const filter = {
+    sethId: req.sethId,
+    [field]: { $regex: new RegExp(`^${escapeRegex(search)}`, "i") },
+  };
+  if (cursor) {
+    filter.$and = [{
+      $or: [
+        { [field]: { $gt: cursor.value } },
+        { [field]: cursor.value, _id: { $gt: new mongoose.Types.ObjectId(cursor.id) } },
+      ],
+    }];
+  }
+
+  const farmers = await Farmer.find(filter)
+    .select("_id name phone village advanceAmount accruedInterest interestRate chargeInterest")
+    .sort({ [field]: 1, _id: 1 })
+    .limit(ADVANCE_PICKER_PAGE_SIZE + 1)
+    .lean();
+
+  const hasMore = farmers.length > ADVANCE_PICKER_PAGE_SIZE;
+  if (hasMore) farmers.pop();
+
+  res.json({
+    farmers,
+    nextCursor: hasMore
+      ? encodeAdvancePickerCursor(farmers[farmers.length - 1], field)
+      : null,
+  });
 };
 
 export const createFarmer = async (req, res) => {

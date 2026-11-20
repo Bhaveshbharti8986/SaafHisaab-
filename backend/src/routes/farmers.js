@@ -2,6 +2,7 @@ import { Router } from "express";
 import { authorize } from "../middleware/authMiddleware.js";
 import {
   getFarmers,
+  getAdvanceFarmerCandidates,
   createFarmer,
   getFarmerById,
   updateFarmer,
@@ -13,6 +14,7 @@ import {
 const router = Router();
 
 router.get("/farmers", getFarmers);
+router.get("/farmers/advance-picker", authorize("seth"), getAdvanceFarmerCandidates);
 router.post("/farmers", authorize("seth", "munsi"), createFarmer);
 router.get("/farmers/:id", getFarmerById);
 router.patch("/farmers/:id", authorize("seth", "munsi"), updateFarmer);
