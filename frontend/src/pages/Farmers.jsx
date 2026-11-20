@@ -102,7 +102,25 @@ export default function Farmers() {
           {loading
             ? [1,2,3,4].map(i => <div key={i} className="h-20 bg-gray-200 rounded-3xl animate-pulse" />)
             : farmers.length === 0
-              ? <p className="text-center text-gray-400 py-12 font-bold text-sm">No farmers found</p>
+              ? (
+                <div className="rounded-3xl border border-gray-100 bg-white px-5 py-8 text-center shadow-sm">
+                  <p className="font-bold text-gray-800">
+                    {debouncedSearch ? `No farmers match "${debouncedSearch}".` : "No farmers added yet."}
+                  </p>
+                  <p className="mt-1 text-sm text-gray-500">
+                    {debouncedSearch
+                      ? "Try a different name or phone number."
+                      : "Add your first farmer to keep purchase and payment records."}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => debouncedSearch ? setSearch("") : setShowAdd(true)}
+                    className="mt-4 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white"
+                  >
+                    {debouncedSearch ? "Clear search" : "Add your first farmer"}
+                  </button>
+                </div>
+              )
               : farmers.map((f, i) => {
                   const isLast = i === farmers.length - 1;
                   return (

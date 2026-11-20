@@ -223,7 +223,9 @@ export default function Wallets() {
 
         {filter === "transfers" ? (
           transfers.length === 0 ? (
-            <p className="text-center text-gray-400 py-8 text-sm">No transfers found</p>
+            <p className="rounded-2xl bg-white px-4 py-8 text-center text-sm text-gray-500">
+              No transfers yet. Transfers between the mandi owner and staff will appear here.
+            </p>
           ) : (
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-4 divide-y divide-gray-100">
               {transfers.map(txn => {
@@ -261,7 +263,11 @@ export default function Wallets() {
           )
         ) : (
           filteredEntries.length === 0 ? (
-            <p className="text-center text-gray-400 py-8 text-sm">No transactions found</p>
+            <p className="rounded-2xl bg-white px-4 py-8 text-center text-sm text-gray-500">
+              {filter === "all"
+                ? "No wallet activity yet. Payments and expenses will appear here."
+                : `No ${filter === "in" ? "incoming" : "outgoing"} activity found. Try another filter.`}
+            </p>
           ) : (
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-4">
               {Object.entries(groupedEntries).map(([month, monthEntries]) => (

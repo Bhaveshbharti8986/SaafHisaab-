@@ -132,7 +132,10 @@ export default function B2bExport() {
         )}
 
         {dispatches.length === 0 ? (
-          <p className="text-center text-gray-400 py-8 text-sm">No dispatches found</p>
+          <div className="rounded-3xl border border-gray-100 bg-white px-5 py-8 text-center shadow-sm">
+            <p className="font-bold text-gray-800">No buyer dispatches yet</p>
+            <p className="mt-1 text-sm text-gray-500">Use Add Dispatch above to record crops sent to buyers and track payments.</p>
+          </div>
         ) : (
           dispatches.map(d => {
             const statusColor = d.paymentStatus === "paid" ? "bg-green-100 text-green-700" : d.paymentStatus === "overdue" ? "bg-red-100 text-red-700" : d.paymentStatus === "partial" ? "bg-blue-100 text-blue-700" : "bg-amber-100 text-amber-700";

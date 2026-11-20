@@ -96,8 +96,9 @@ export default function Employees() {
             {employees.length === 0 ? (
               <div className="text-center py-12 bg-white rounded-2xl shadow-sm border border-gray-100 mt-4">
                 <UserCircle size={48} className="mx-auto text-gray-300 mb-3" />
-                <p className="text-gray-500 font-medium">No employees registered yet.</p>
-                <p className="text-sm text-gray-400 mt-1">Add an accountant / clerk or weighing staff member to get started.</p>
+                <p className="text-gray-500 font-medium">No staff accounts yet.</p>
+                <p className="text-sm text-gray-400 mt-1">Add an accountant / clerk or weighing staff member to give them a login.</p>
+                <p className="mt-2 text-xs font-semibold text-blue-600">Use the + button below to add staff.</p>
               </div>
             ) : filteredEmployees.length === 0 ? (
               <div className="text-center py-12 bg-white rounded-2xl shadow-sm border border-gray-100">
@@ -150,6 +151,7 @@ export default function Employees() {
 
       {/* Floating Action Button */}
       <button
+        aria-label="Add staff member"
         onClick={() => setShowModal(true)}
         className="fixed bottom-20 right-6 w-14 h-14 bg-blue-600 text-white rounded-full flex items-center justify-center shadow-lg active:scale-95 transition-transform z-40"
       >

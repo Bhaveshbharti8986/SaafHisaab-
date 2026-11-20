@@ -13,10 +13,12 @@ export default function Dashboard() {
     todaySpend: 0, 
     sethWalletBalance: 0, 
     munsiCashBalance: 0,
-    activeFarmers: 0 
+    activeFarmers: 0,
+    totalFarmers: 0,
   });
   const [pending, setPending]   = useState([]);
   const [loading, setLoading]   = useState(true);
+  const [summaryLoaded, setSummaryLoaded] = useState(false);
   
   const scrollRef = useRef(null);
   const [isHovered, setIsHovered] = useState(false);
@@ -45,14 +47,15 @@ export default function Dashboard() {
     ]).then(([s, pe]) => {
       setSummary(s);
       setPending(pe);
+      setSummaryLoaded(true);
     }).finally(() => setLoading(false));
   }, []);
 
   const stats = summary ? [
-    { label: "Today's Profit",  value: formatINR(summary.todayNetProfit || 0), icon: <IndianRupee className={summary.todayNetProfit < 0 ? "text-red-300" : "text-green-300"} size={24} />, valueClass: summary.todayNetProfit < 0 ? "text-red-400" : "text-white" },
-    { label: "Cash Outflow",    value: formatINR(summary.todayCashOutflow),   icon: <Wallet className="text-red-300" size={24} /> },
-    { label: "Kharedi Value",   value: formatINR(summary.todayKharedi),       icon: <Banknote className="text-orange-200" size={24} /> },
-    { label: "Kharedi Weight",  value: formatWeight(summary.todayPurchaseKg), icon: <Scale className="text-blue-200" size={24} /> },
+    { label: "Profit after costs", hint: "Today's estimate", value: formatINR(summary.todayNetProfit || 0), icon: <IndianRupee className={summary.todayNetProfit < 0 ? "text-red-300" : "text-green-300"} size={24} />, valueClass: summary.todayNetProfit < 0 ? "text-red-400" : "text-white" },
+    { label: "Cash paid out", hint: "Purchases, expenses and payouts", value: formatINR(summary.todayCashOutflow), icon: <Wallet className="text-red-300" size={24} /> },
+    { label: "Crop purchase value", hint: "Total spent buying crops", value: formatINR(summary.todayKharedi), icon: <Banknote className="text-orange-200" size={24} /> },
+    { label: "Crop weight bought", hint: "Total weight purchased today", value: formatWeight(summary.todayPurchaseKg), icon: <Scale className="text-blue-200" size={24} /> },
   ] : [];
 
   return (
@@ -63,8 +66,8 @@ export default function Dashboard() {
         <div className="bg-gradient-to-b from-blue-800 to-blue-700 px-4 pt-4 pb-12 rounded-b-[2rem] shadow-md relative z-0">
           <div className="flex justify-between items-center mb-4 px-1">
             <div>
-              <p className="text-blue-200 text-xs font-medium uppercase tracking-wider mb-1">Business Overview</p>
-              <h2 className="text-white text-xl font-bold">Today's Summary</h2>
+              <p className="text-blue-200 text-xs font-medium uppercase tracking-wider mb-1">Mandi Overview</p>
+              <h2 className="text-white text-xl font-bold">Today at a glance</h2>
             </div>
           </div>
           
@@ -88,9 +91,10 @@ export default function Dashboard() {
                 >
                   <div className="flex items-center gap-2 mb-2">
                     <span className="bg-white/20 p-1.5 rounded-lg">{s.icon}</span>
-                    <p className="text-blue-100 text-[10px] font-semibold uppercase tracking-wider">{s.label}</p>
+                    <p className="text-blue-100 text-[10px] font-semibold leading-tight">{s.label}</p>
                   </div>
                   <p className={`font-bold text-2xl ${s.valueClass || "text-white"}`}>{s.value}</p>
+                  <p className="mt-1 text-[10px] font-medium leading-tight text-blue-100/80">{s.hint}</p>
                 </motion.div>
               ))
             }
@@ -99,6 +103,26 @@ export default function Dashboard() {
 
         <div className="px-4 space-y-5 -mt-6 relative z-10">
           
+          {summaryLoaded && summary.totalFarmers === 0 && (
+            <section className="rounded-3xl border border-blue-100 bg-white p-4 shadow-[0_4px_15px_rgba(0,0,0,0.04)]">
+              <h2 className="font-bold text-gray-900">Start setting up your mandi</h2>
+              <p className="mt-1 text-sm leading-5 text-gray-600">
+                Add a farmer, set crop rates, then record your first weighing.
+              </p>
+              <div className="mt-3 grid grid-cols-3 gap-2">
+                <Link href="/farmers" className="rounded-xl bg-blue-50 px-2 py-2.5 text-center text-xs font-bold leading-4 text-blue-800">
+                  1. Add a farmer
+                </Link>
+                <Link href="/rates" className="rounded-xl bg-blue-50 px-2 py-2.5 text-center text-xs font-bold leading-4 text-blue-800">
+                  2. Set crop rates
+                </Link>
+                <Link href="/weigh" className="rounded-xl bg-blue-50 px-2 py-2.5 text-center text-xs font-bold leading-4 text-blue-800">
+                  3. Record a weighing
+                </Link>
+              </div>
+            </section>
+          )}
+
           {/* Wallet Section (Floating White Cards) */}
           <div className="grid grid-cols-2 gap-3">
             <Link href="/wallets">
@@ -124,23 +148,23 @@ export default function Dashboard() {
           {/* Quick Access (Single White Card Grid like Paytm/GPay) */}
           <section>
             <div className="bg-white rounded-3xl shadow-[0_4px_15px_rgba(0,0,0,0.03)] border border-gray-100 p-4">
-              <h2 className="font-bold text-gray-800 mb-4 px-2 text-sm">Services</h2>
+              <h2 className="font-bold text-gray-800 mb-4 px-2 text-sm">Quick actions</h2>
               <div className="grid grid-cols-3 gap-3">
                 <Link href="/farmers" className="flex flex-col items-center justify-center gap-2 active:opacity-50 transition-opacity p-3 border border-gray-100 rounded-2xl">
                   <div className="p-3 bg-blue-50 text-blue-600 rounded-xl"><Users size={24} /></div>
-                  <span className="text-xs font-semibold text-gray-700">Farmer Khata</span>
+                  <span className="text-xs font-semibold text-gray-700">Farmer Accounts</span>
                 </Link>
                 <Link href="/employees" className="flex flex-col items-center justify-center gap-2 active:opacity-50 transition-opacity p-3 border border-gray-100 rounded-2xl">
                   <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl"><UserCircle size={24} /></div>
-                  <span className="text-xs font-semibold text-gray-700">Employee Reg</span>
+                  <span className="text-xs font-semibold text-gray-700">Manage Staff</span>
                 </Link>
                 <Link href="/godown" className="flex flex-col items-center justify-center gap-2 active:opacity-50 transition-opacity p-3 border border-gray-100 rounded-2xl">
                   <div className="p-3 bg-orange-50 text-orange-600 rounded-xl"><Factory size={24} /></div>
-                  <span className="text-[10px] font-semibold text-gray-700 text-center leading-tight">Godown</span>
+                  <span className="text-[10px] font-semibold text-gray-700 text-center leading-tight">Warehouse Stock</span>
                 </Link>
                 <Link href="/reports" className="flex flex-col items-center justify-center gap-2 active:opacity-50 transition-opacity p-3 border border-gray-100 rounded-2xl">
                   <div className="p-3 bg-red-50 text-red-600 rounded-xl"><BookOpen size={24} /></div>
-                  <span className="text-[10px] font-semibold text-gray-700 text-center leading-tight">Passbook</span>
+                  <span className="text-[10px] font-semibold text-gray-700 text-center leading-tight">Transactions</span>
                 </Link>
 
                 <Link href="/expenses" className="flex flex-col items-center justify-center gap-2 active:opacity-50 transition-opacity p-3 border border-gray-100 rounded-2xl">
@@ -149,11 +173,11 @@ export default function Dashboard() {
                 </Link>
                 <Link href="/b2b" className="flex flex-col items-center justify-center gap-2 active:opacity-50 transition-opacity p-3 border border-gray-100 rounded-2xl">
                   <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl"><Truck size={24} /></div>
-                  <span className="text-[10px] font-semibold text-gray-700 text-center leading-tight">Export</span>
+                  <span className="text-[10px] font-semibold text-gray-700 text-center leading-tight">Buyer Dispatches</span>
                 </Link>
                 <Link href="/analytics" className="flex flex-col items-center justify-center gap-2 active:opacity-50 transition-opacity p-3 border border-gray-100 rounded-2xl">
                   <div className="p-3 bg-purple-50 text-purple-600 rounded-xl"><LineChart size={24} /></div>
-                  <span className="text-[10px] font-semibold text-gray-700 text-center leading-tight">Analysis</span>
+                  <span className="text-[10px] font-semibold text-gray-700 text-center leading-tight">Business Reports</span>
                 </Link>
                 <Link href="/interest" className="flex flex-col items-center justify-center gap-2 active:opacity-50 transition-opacity p-3 border border-gray-100 rounded-2xl">
                   <div className="p-3 bg-pink-50 text-pink-600 rounded-xl"><Percent size={24} /></div>
@@ -161,7 +185,7 @@ export default function Dashboard() {
                 </Link>
                 <Link href="/rates" className="flex flex-col items-center justify-center gap-2 active:opacity-50 transition-opacity p-3 border border-gray-100 rounded-2xl">
                   <div className="p-3 bg-teal-50 text-teal-600 rounded-xl"><TrendingDown size={24} /></div>
-                  <span className="text-[10px] font-semibold text-gray-700 text-center leading-tight">Rates</span>
+                  <span className="text-[10px] font-semibold text-gray-700 text-center leading-tight">Crop Rates</span>
                 </Link>
               </div>
             </div>
@@ -171,8 +195,8 @@ export default function Dashboard() {
           {pending.length > 0 && (
             <section className="pb-8">
               <div className="flex items-center justify-between mb-3 px-1">
-                <h2 className="font-bold text-gray-800 text-sm">Action Required    </h2>
-                <span className="px-2 py-0.5 rounded-full bg-red-100 text-red-600 text-[10px] font-bold">{pending.length} Pending</span>
+                <h2 className="font-bold text-gray-800 text-sm">Weighings to review</h2>
+                <span className="px-2 py-0.5 rounded-full bg-red-100 text-red-600 text-[10px] font-bold">{pending.length} pending</span>
               </div>
               <div className="bg-white rounded-3xl shadow-[0_4px_15px_rgba(0,0,0,0.03)] border border-gray-100 overflow-hidden">
                 {pending.map((e, index) => (

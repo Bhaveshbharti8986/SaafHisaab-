@@ -78,8 +78,11 @@ export default function Labour() {
           
           <div className="flex flex-col">
             {recentFarmers.length === 0 ? (
-              <div className="p-8 text-center text-gray-400 font-semibold text-sm">
-                No entries yet today.
+              <div className="p-6 text-center">
+                <p className="text-sm font-semibold text-gray-600">No weighings recorded yet.</p>
+                <Link href="/weigh" className="mt-3 inline-flex min-h-11 items-center rounded-xl bg-purple-50 px-4 text-sm font-bold text-purple-700">
+                  Record the first weighing
+                </Link>
               </div>
             ) : (
               recentFarmers.map((entry) => (

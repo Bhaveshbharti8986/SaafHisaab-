@@ -730,7 +730,7 @@ export default function FarmerDetail() {
           <div className="space-y-2">
             {filtered.length === 0 && (
               <p className="text-center text-gray-400 py-12 text-sm bg-white rounded-2xl border border-gray-100 shadow-sm">
-                No history found
+                No transactions yet. Purchases, payments, and settlements will appear here.
               </p>
             )}
             

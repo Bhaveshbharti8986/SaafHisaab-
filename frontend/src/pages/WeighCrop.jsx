@@ -287,7 +287,25 @@ export default function WeighCrop() {
 
                 <div className="flex-1 overflow-y-auto p-4 space-y-3 pb-10">
                   {farmers.length === 0 ? (
-                    <div className="p-8 text-gray-400 font-bold text-center">No farmers found</div>
+                    <div className="rounded-2xl bg-white p-8 text-center">
+                      <p className="font-bold text-gray-700">
+                        {searchQuery ? "No farmers match your search." : "No farmers have been added yet."}
+                      </p>
+                      <p className="mt-1 text-sm text-gray-500">
+                        {searchQuery
+                          ? "Try another name or phone number."
+                          : "Ask the mandi owner or accountant to add a farmer first."}
+                      </p>
+                      {searchQuery && (
+                        <button
+                          type="button"
+                          onClick={() => setSearchQuery("")}
+                          className="mt-3 min-h-11 rounded-xl bg-blue-50 px-4 text-sm font-bold text-blue-700"
+                        >
+                          Clear search
+                        </button>
+                      )}
+                    </div>
                   ) : (
                     farmers.map(f => (
                       <div

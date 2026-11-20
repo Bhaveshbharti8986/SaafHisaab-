@@ -102,7 +102,10 @@ export default function Expenses() {
         )}
 
         {expenses.length === 0 ? (
-          <p className="text-center text-gray-400 py-8 text-sm">No expenses recorded</p>
+          <div className="rounded-3xl border border-gray-100 bg-white px-5 py-8 text-center shadow-sm">
+            <p className="font-bold text-gray-800">No expenses recorded yet</p>
+            <p className="mt-1 text-sm text-gray-500">Use Add Expense above to start tracking mandi costs.</p>
+          </div>
         ) : (
           <div className="space-y-5">
             {Object.entries(groupedExpenses).map(([month, monthExpenses]) => (

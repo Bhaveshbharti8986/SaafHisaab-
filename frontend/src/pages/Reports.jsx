@@ -79,8 +79,14 @@ export default function Reports() {
         ) : filteredEntries.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-64 text-gray-400">
             <FileText size={48} className="mb-3 opacity-30" />
-            <p className="text-sm font-bold text-gray-500">No transactions found</p>
-            <p className="text-xs text-gray-400 mt-1">Try changing the date or filter</p>
+            <p className="text-sm font-bold text-gray-500">
+              {entries.length === 0 ? "No transactions yet" : "No transactions match this filter"}
+            </p>
+            <p className="text-xs text-gray-400 mt-1">
+              {entries.length === 0
+                ? "Farmer purchases, payments, and expenses will appear here."
+                : "Choose another filter to see other transactions."}
+            </p>
           </div>
         ) : (
           <div className="bg-white">
