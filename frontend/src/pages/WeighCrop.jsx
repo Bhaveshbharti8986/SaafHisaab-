@@ -179,26 +179,52 @@ export default function WeighCrop() {
 
       const farmer = farmers.find(f => f._id === farmerId);
       if (farmer) {
-        const dateStr = new Date().toLocaleDateString(language === "hi" ? "hi-IN" : "en-IN");
+        const locale = language === "hi" ? "hi-IN" : "en-IN";
+        const dateStr = new Intl.DateTimeFormat(locale, {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        }).format(new Date());
+        const formatWeight = (weight) => `${Number(weight).toLocaleString(locale, {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        })} ${t("kg")}`;
+        const formatAmount = (amount) => `₹${Number(amount).toLocaleString(locale, {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        })}`;
         const cropName = cropType.charAt(0).toUpperCase() + cropType.slice(1);
-        let message = `*Rular Ledger ${t("Crop Delivery")}*\n--------------------\n${t("Farmer")}: ${farmer.name}\n${t("Date")}: ${dateStr}\n${t("Crop")}: ${t(cropName)}\n\n`;
-        message += `📦 *${bagWeights.length} ${t("Individual Bags")}:*\n`;
-        bagWeights.forEach((w, i) => { message += `${i + 1}. ${w}kg\n`; });
-        message += `\n*Summary:*\n`;
-        message += `• ${t("Total Weight")}: ${totalWeight.toFixed(2)}kg\n`;
-        if (kardaWeight > 0) message += `• ${t("Karda Cut")}: -${kardaWeight}kg\n`;
-        message += `• ${t("Net Weight")}: ${netWeight}kg\n`;
-        message += `• ${t("Rate")}: ₹${rate}/kg\n`;
-        message += `• ${t("Gross")}: +₹${Math.round(netWeight * rate).toLocaleString('en-IN')}\n`;
-        if (palledariAmount > 0) message += `• 👷 ${t("Palledari")}: -₹${palledariAmount}\n`;
-        message += `--------------------\n*${t("Net Amount")}: ₹${netAmount.toLocaleString('en-IN')}*\n\n${t("Thank you for trading with us!")}`;
+        const grossAmount = Math.round(netWeight * rate * 100) / 100;
+        const message = [
+          "🌾 *SaafHisaab Mandi*",
+          `*${t("Crop Delivery Receipt")}*`,
+          "━━━━━━━━━━━━━━━━━━━━",
+          `👨‍🌾 *${t("Farmer")}:* ${farmer.name}`,
+          `📅 *${t("Date")}:* ${dateStr}`,
+          `🌱 *${t("Crop")}:* ${t(cropName)}`,
+          "",
+          `📦 *${t("Individual Bags")} (${bagWeights.length})*`,
+          ...bagWeights.map((weight, index) => `${String(index + 1).padStart(2, "0")}. ${formatWeight(weight)}`),
+          "",
+          `📊 *${t("Delivery Summary")}*`,
+          `• ${t("Total Weight")}: ${formatWeight(totalWeight)}`,
+          ...(kardaWeight > 0 ? [`• ${t("Karda Cut")}: -${formatWeight(kardaWeight)}`] : []),
+          `• ${t("Net Weight")}: ${formatWeight(netWeight)}`,
+          `• ${t("Rate")}: ${formatAmount(rate)}/${t("kg")}`,
+          `• ${t("Gross Amount")}: ${formatAmount(grossAmount)}`,
+          ...(palledariAmount > 0 ? [`• ${t("Palledari")}: -${formatAmount(palledariAmount)}`] : []),
+          "━━━━━━━━━━━━━━━━━━━━",
+          `✅ *${t("Net Amount")}: ${formatAmount(netAmount)}*`,
+          "",
+          t("Thank you for trading with us!"),
+        ].join("\n");
 
         const encoded = encodeURIComponent(message);
         const phone = farmer.phone ? String(farmer.phone).replace(/\D/g, '') : '';
         
         if (phone) {
           if (res._offline) {
-            showToast(t("Saved offline. Message will send when online."), "success");
+            showToast("success", t("Saved offline. Message will send when online."));
           } else {
             const url = `https://wa.me/91${phone}?text=${encoded}`;
             window.open(url, '_blank');
@@ -218,7 +244,7 @@ export default function WeighCrop() {
       }, 1500);
     } catch (err) {
       console.error(err);
-      showToast(err.message || t("Failed to save. Please try again."), "error");
+      showToast("error", err.message || t("Failed to save. Please try again."));
       setSaving(false);
     }
   }
