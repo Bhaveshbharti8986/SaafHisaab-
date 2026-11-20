@@ -5,6 +5,7 @@ import {
 } from "lucide-react";
 import { getQueue, syncQueue } from "../../lib/offlineSync.js";
 import { api } from "../../lib/api.js";
+import { useTranslation } from "../../lib/i18n.jsx";
 
 const SETH_NAV = [
   { path: "/",          icon: <LayoutDashboard size={20} />, label: "Home"       },
@@ -22,11 +23,43 @@ const MUNSI_NAV = [
   { path: "/settings",    icon: <User size={20} />,            label: "Profile" },
 ];
 
+const DESKTOP_NAV = {
+  seth: [
+    { path: "/", icon: <LayoutDashboard size={20} />, label: "Home" },
+    { path: "/farmers", icon: <Users size={20} />, label: "Farmer Accounts" },
+    { path: "/weigh", icon: <Scale size={20} />, label: "Weigh Crop" },
+    { path: "/wallets", icon: <Wallet size={20} />, label: "Wallet" },
+    { path: "/expenses", icon: <Factory size={20} />, label: "Expenses" },
+    { path: "/rates", icon: <Scale size={20} />, label: "Crop Rates" },
+    { path: "/godown", icon: <Factory size={20} />, label: "Warehouse Stock" },
+    { path: "/reports", icon: <LayoutDashboard size={20} />, label: "Transactions" },
+    { path: "/employees", icon: <Users size={20} />, label: "Manage Staff" },
+    { path: "/settings", icon: <User size={20} />, label: "Profile" },
+  ],
+  munsi: [
+    { path: "/munsi", icon: <LayoutDashboard size={20} />, label: "Home" },
+    { path: "/weigh", icon: <Scale size={20} />, label: "Weigh Crop" },
+    { path: "/farmers", icon: <Users size={20} />, label: "Farmer Accounts" },
+    { path: "/expenses", icon: <Factory size={20} />, label: "Expenses" },
+    { path: "/godown", icon: <Factory size={20} />, label: "Warehouse Stock" },
+    { path: "/wallets", icon: <Wallet size={20} />, label: "Wallet" },
+    { path: "/rates", icon: <Scale size={20} />, label: "Crop Rates" },
+    { path: "/settings", icon: <User size={20} />, label: "Profile" },
+  ],
+  labour: [
+    { path: "/labour", icon: <LayoutDashboard size={20} />, label: "Home" },
+    { path: "/weigh", icon: <Scale size={20} />, label: "Weigh Crop" },
+    { path: "/rates", icon: <Scale size={20} />, label: "Crop Rates" },
+    { path: "/settings", icon: <User size={20} />, label: "Profile" },
+  ],
+};
+
 import { decodeToken } from "../../lib/jwt.js";
 import SaafHisaabLogo from "../../pages/SaafHisaabLogo.jsx";
 
 export default function AppLayout({ children, title, showBack, munsiMode }) {
-  const [location, navigate] = useLocation();
+  const [location] = useLocation();
+  const { t } = useTranslation();
   
   const token = localStorage.getItem("accessToken");
   let role = "munsi";
@@ -37,8 +70,8 @@ export default function AppLayout({ children, title, showBack, munsiMode }) {
 
   const isMunsi = role === "munsi";
   const isLabour = role === "labour";
-  const isSeth = role === "seth";
   const nav = isLabour ? [] : (isMunsi ? MUNSI_NAV : SETH_NAV);
+  const desktopNav = DESKTOP_NAV[isLabour ? "labour" : isMunsi ? "munsi" : "seth"];
 
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
   const [queueCount, setQueueCount] = useState(0);
@@ -94,92 +127,98 @@ export default function AppLayout({ children, title, showBack, munsiMode }) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 flex justify-center">
-
-      <div className="w-full max-w-[480px] flex flex-col min-h-screen bg-gray-50 relative shadow-2xl">
-      
-      
-        {/* Top Bar */}
-      
-<header className=" bg-gradient-to-t from-blue-900 to-gray-900  text-white px-5 py-4 flex items-center gap-4 sticky top-0 z-30 shadow-[0_4px_25px_rgba(0,0,0,0.5)] border-b border-white/10 backdrop-blur-md">
-  
-  {showBack && (
-    <button 
-      onClick={() => history.back()} 
-      className="w-9 h-9 flex items-center justify-center rounded-full bg-white/5 hover:bg-blue-500/20 text-cyan-400 transition-all border border-white/10"
-    >
-      <ArrowLeft size={18} />
-    </button>
-  )}
-
-  <div className="flex-1 flex items-center gap-3">
-    {/* Logo */}
-    <div className="w-12 h-12 shrink-0 flex items-center justify-center bg-blue-900/20 rounded-full border border-blue-500/20">
-       <SaafHisaabLogo size={28} animated={false} />
-    </div>
-
-    {/* Title Group - Font & Gradient Styling */}
-    <div className="flex flex-col gap-1">
-      <span className="text-[12px] uppercase tracking-[0.3em] font-black text-emerald-300 ">
-        {title}
-      </span>
-      <span className="text-[16px] font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white to-blue-200 leading-none">
-        Saaf<span className="text-cyan-400">Hisaab</span> Mandi
-      </span>
-    </div>
-
-    {isOffline && (
-      <span className="bg-red-500/10 text-red-400 border border-red-500/20 text-[9px] uppercase tracking-widest px-3 py-1 rounded-full flex items-center gap-1 font-black ml-auto shadow-[0_0_10px_rgba(239,68,68,0.2)]">
-        <CloudOff size={10} strokeWidth={3} /> Offline
-      </span>
-    )}
-  </div>
-  
-  {/* Pending Sync Button - Subtle Glow */}
-  {queueCount > 0 && (
-    <button 
-      onClick={() => syncQueue()} 
-      disabled={isSyncing} 
-      className={`text-[10px] px-4 py-1.5 rounded-full font-black flex items-center gap-2 border transition-all shadow-sm ${
-        isSyncing 
-          ? 'bg-orange-500/10 text-orange-400 border-orange-500/30' 
-          : 'bg-orange-500/5 text-orange-300 hover:bg-orange-500/10 border-orange-500/20'
-      }`}
-    >
-      <CloudSync size={12} className={isSyncing ? "animate-spin" : ""} />
-      {isSyncing ? "Syncing..." : `${queueCount} Pending`}
-    </button>
-  )}
-</header>
-      {/* Content */}
-      <main className="flex-1 pb-24">
-        {children}
-      </main>
-
-      {/* Bottom Nav */}
-      {!isLabour && (
-      <nav className="fixed bottom-0 w-full max-w-[480px] bg-white border-t border-gray-200 z-30 pb-safe">
-        <div className="flex items-center justify-around py-2">
-          {nav.map((item, i) =>
-            item.fab ? (
-              <Link key={i} href="/weigh">
-                <div className="w-14 h-14 bg-[#2a6c4a] rounded-full flex items-center justify-center text-white shadow-lg -mt-6 cursor-pointer active:scale-95 transition-transform">
-                  {item.icon}
-                </div>
-              </Link>
-            ) : (
-              <Link key={i} href={item.path}>
-                <div className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl cursor-pointer transition-colors ${location === item.path ? "text-[#2a6c4a]" : "text-gray-400"}`}>
-                  <span className="flex items-center justify-center h-6">{item.icon}</span>
-                  <span className="text-[10px] font-semibold">{item.label}</span>
-                </div>
-              </Link>
-            )
+    <div className="min-h-screen bg-gray-100">
+      <div className="mx-auto flex min-h-screen w-full max-w-[480px] flex-col bg-gray-50 shadow-2xl md:max-w-[1440px]">
+        <header className="sticky top-0 z-30 flex items-center gap-4 border-b border-white/10 bg-gradient-to-t from-blue-900 to-gray-900 px-4 py-3 text-white shadow-[0_4px_25px_rgba(0,0,0,0.35)] backdrop-blur-md sm:px-5 lg:px-7">
+          {showBack && (
+            <button
+              onClick={() => history.back()}
+              aria-label={t("Back")}
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/5 text-cyan-400 transition-all hover:bg-blue-500/20"
+            >
+              <ArrowLeft size={18} />
+            </button>
           )}
+
+          <div className="flex min-w-0 flex-1 items-center gap-3">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-blue-500/20 bg-blue-900/20">
+              <SaafHisaabLogo size={28} animated={false} />
+            </div>
+            <div className="flex min-w-0 flex-col gap-1">
+              <span className="truncate text-[11px] font-black uppercase tracking-[0.18em] text-emerald-300 sm:text-xs sm:tracking-[0.3em]">
+                {t(title)}
+              </span>
+              <span className="text-[15px] font-extrabold leading-none tracking-tight text-transparent bg-gradient-to-r from-white to-blue-200 bg-clip-text sm:text-base">
+                Saaf<span className="text-cyan-400">Hisaab</span> Mandi
+              </span>
+            </div>
+            {isOffline && (
+              <span className="ml-auto flex items-center gap-1 rounded-full border border-red-500/20 bg-red-500/10 px-2 py-1 text-[9px] font-black uppercase tracking-widest text-red-300 sm:px-3">
+                <CloudOff size={10} strokeWidth={3} /> {t("Offline")}
+              </span>
+            )}
+          </div>
+
+          {queueCount > 0 && (
+            <button
+              onClick={() => syncQueue()}
+              disabled={isSyncing}
+              className={`flex shrink-0 items-center gap-2 rounded-full border px-3 py-1.5 text-[10px] font-black shadow-sm transition-all sm:px-4 ${
+                isSyncing
+                  ? "border-orange-500/30 bg-orange-500/10 text-orange-300"
+                  : "border-orange-500/20 bg-orange-500/5 text-orange-300 hover:bg-orange-500/10"
+              }`}
+            >
+              <CloudSync size={12} className={isSyncing ? "animate-spin" : ""} />
+              {isSyncing ? t("Syncing...") : <>{queueCount} {t("Pending")}</>}
+            </button>
+          )}
+        </header>
+
+        <div className="flex flex-1">
+          <aside className="sticky top-[72px] hidden h-[calc(100vh-72px)] w-60 shrink-0 flex-col border-r border-gray-200 bg-white p-3 md:flex">
+            <nav aria-label={t("Main navigation")} className="space-y-1">
+              {desktopNav.map((item) => (
+                <Link key={item.path} href={item.path}>
+                  <div className={`flex min-h-11 cursor-pointer items-center gap-3 rounded-xl px-3 text-sm font-semibold transition-colors ${
+                    location === item.path ? "bg-blue-50 text-blue-800" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                  }`}>
+                    <span className="flex h-6 w-6 items-center justify-center">{item.icon}</span>
+                    <span>{t(item.label)}</span>
+                  </div>
+                </Link>
+              ))}
+            </nav>
+          </aside>
+
+          <main className="mx-auto min-w-0 w-full max-w-7xl flex-1 pb-24 md:pb-8">
+            {children}
+          </main>
         </div>
-      </nav>
-      )}
-    </div>
+
+        {!isLabour && (
+          <nav className="fixed inset-x-0 bottom-0 z-30 mx-auto w-full max-w-[480px] border-t border-gray-200 bg-white pb-safe md:hidden" aria-label={t("Main navigation")}>
+            <div className="flex items-center justify-around py-2">
+              {nav.map((item, i) =>
+                item.fab ? (
+                  <Link key={i} href="/weigh">
+                    <div aria-label={t("Record a weighing")} className="flex h-14 w-14 cursor-pointer items-center justify-center rounded-full bg-[#2a6c4a] text-white shadow-lg -mt-6 transition-transform active:scale-95">
+                      {item.icon}
+                    </div>
+                  </Link>
+                ) : (
+                  <Link key={i} href={item.path}>
+                    <div className={`flex cursor-pointer flex-col items-center gap-0.5 rounded-xl px-3 py-1 transition-colors ${location === item.path ? "text-[#2a6c4a]" : "text-gray-400"}`}>
+                      <span className="flex h-6 items-center justify-center">{item.icon}</span>
+                      <span className="text-[10px] font-semibold">{t(item.label)}</span>
+                    </div>
+                  </Link>
+                )
+              )}
+            </div>
+          </nav>
+        )}
+      </div>
     </div>
   );
 }

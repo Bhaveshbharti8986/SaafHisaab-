@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { CheckCircle2, XCircle, AlertTriangle, Info } from "lucide-react";
+import { useTranslation } from "../../lib/i18n.jsx";
 
 const TYPE_STYLES = {
   success: {
@@ -36,6 +37,7 @@ const TYPE_STYLES = {
 const DURATION = 3000;
 
 function ToastCard({ toast, onDismiss }) {
+  const { t } = useTranslation();
   const style = TYPE_STYLES[toast.type] || TYPE_STYLES.info;
   const Icon = style.icon;
 
@@ -61,7 +63,7 @@ function ToastCard({ toast, onDismiss }) {
           <Icon size={17} strokeWidth={2.4} />
         </span>
         <p className="pt-0.5 text-[13.5px] font-semibold leading-snug text-slate-100">
-          {toast.message}
+          {t(toast.message)}
         </p>
       </div>
 

@@ -4,6 +4,7 @@ import { ChevronRight, UserRoundPlus } from "lucide-react";
 import { useLocation } from "wouter";
 import SaafHisaabLogo from "./SaafHisaabLogo";
 import { CharacterForRole } from "../components/Characters.jsx";
+import { useTranslation } from "../lib/i18n.jsx";
 
 const roles = [
   { role: "seth", title: "Mandi Owner", hindi: "Seth · सेठ" },
@@ -50,6 +51,8 @@ const Particles = () => {
 };
 
 function SplashWelcome() {
+  const { t } = useTranslation();
+
   return (
     <div className="fixed inset-0 flex flex-col items-center justify-center overflow-hidden bg-gradient-to-b from-blue-900 to-gray-900 font-sans">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_#0c2a4d_0%,_#05080F_65%)]" />
@@ -74,7 +77,7 @@ function SplashWelcome() {
         transition={{ delay: 0.8, duration: 0.4 }}
         className="z-10 mt-2 text-sm font-semibold tracking-wide text-blue-100"
       >
-        Mandi accounts, crop weighing, stock, and staff
+        {t("Mandi accounts, crop weighing, stock, and staff")}
       </motion.p>
     </div>
   );
@@ -111,6 +114,7 @@ function FarmFooter() {
 }
 
 export default function Welcome({ isSplash = false }) {
+  const { t, language } = useTranslation();
   const [, navigate] = useLocation();
   const [showIntro, setShowIntro] = useState(() => {
     if (isSplash) return false;
@@ -167,7 +171,9 @@ export default function Welcome({ isSplash = false }) {
               <h1 className="mt-0.5 text-[30px] font-black leading-none tracking-tight text-white">
                 Saaf<span className="text-cyan-400">Hisaab</span>
               </h1>
-              <p className="mt-1 text-sm font-semibold text-sky-200">Har hisaab, saaf saaf</p>
+              <p className="mt-1 text-sm font-semibold text-sky-200">
+                {language === "hi" ? "हर हिसाब, साफ़-साफ़" : "Clear accounts, the simple way"}
+              </p>
             </div>
             <svg
               viewBox="0 0 480 88"
@@ -185,12 +191,12 @@ export default function Welcome({ isSplash = false }) {
               <SaafHisaabLogo size={30} animated={false} primary="#123d79" accent="#1677ff" />
               <span className="text-sm font-extrabold text-[#102b57]">SaafHisaab Mandi</span>
               <span className="mx-1 h-5 w-px bg-slate-300" />
-              <span className="text-xs font-medium text-slate-600">Mandi accounts</span>
+              <span className="text-xs font-medium text-slate-600">{t("Mandi accounts")}</span>
             </div>
             <h2 className="text-center text-[clamp(28px,8vw,34px)] font-black leading-[1.05] tracking-tight text-[#0b2551]">
-              Choose your <span className="text-blue-500">account type</span>
+              {t("Choose your ")}<span className="text-blue-500">{t("account type")}</span>
             </h2>
-            <p className="mt-1 text-center text-base font-medium text-[#1e3765]">Select your role to sign in</p>
+            <p className="mt-1 text-center text-base font-medium text-[#1e3765]">{t("Select your role to sign in")}</p>
           </section>
 
           <div className="relative z-10 mt-3 flex min-h-0 flex-1 flex-col justify-center">
@@ -206,8 +212,8 @@ export default function Welcome({ isSplash = false }) {
                     <CharacterForRole role={role} className="h-full w-full" />
                   </span>
                   <span className="flex-1">
-                    <span className="block text-[clamp(18px,5.5vw,21px)] font-extrabold tracking-tight">{title}</span>
-                    <span className="mt-0.5 block text-base font-bold text-slate-600">{hindi}</span>
+                    <span className="block text-[clamp(18px,5.5vw,21px)] font-extrabold tracking-tight">{t(title)}</span>
+                    <span className="mt-0.5 block text-base font-bold text-slate-600">{t(hindi)}</span>
                   </span>
                   <span className={`mr-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${role === "seth" ? "bg-blue-600 text-white" : role === "munshi" ? "bg-teal-100 text-teal-800" : "bg-orange-100 text-orange-800"}`}>
                     <ChevronRight size={25} strokeWidth={2.5} />
@@ -224,7 +230,7 @@ export default function Welcome({ isSplash = false }) {
                 className="flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-full border-2 border-blue-300 bg-white/70 px-3 text-sm font-extrabold text-[#102b57] shadow-[0_6px_16px_rgba(37,99,235,.14)] transition hover:border-blue-500"
               >
                 <UserRoundPlus size={23} />
-                Setting up a mandi? Register as a Mandi Owner
+                {t("Setting up a mandi? Register as a Mandi Owner")}
                 <ChevronRight size={22} className="ml-auto" />
               </a>
             </div>

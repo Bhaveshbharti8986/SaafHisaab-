@@ -7,6 +7,7 @@ import { formatINR } from "../lib/format.js";
 import { showToast } from "../lib/toast.js";
 import { X, Scale, Search } from "lucide-react";
 import { getAvatarColor, getInitials } from "../lib/crop.js";
+import { useTranslation } from "../lib/i18n.jsx";
 const CROPS = [
   { key: "wheat", emoji: "🌾", label: "Wheat" },
   { key: "maize", emoji: "🌽", label: "Maize" },
@@ -45,6 +46,7 @@ const NUMPAD = [
 ];
 
 export default function WeighCrop() {
+  const { t, language } = useTranslation();
   const [, navigate] = useLocation();
   const [farmers, setFarmers] = useState([]);
   const [marketRates, setMarketRates] = useState({});
@@ -177,26 +179,26 @@ export default function WeighCrop() {
 
       const farmer = farmers.find(f => f._id === farmerId);
       if (farmer) {
-        const dateStr = new Date().toLocaleDateString('en-IN');
+        const dateStr = new Date().toLocaleDateString(language === "hi" ? "hi-IN" : "en-IN");
         const cropName = cropType.charAt(0).toUpperCase() + cropType.slice(1);
-        let message = `*Rular Ledger Crop Delivery*\n--------------------\nFarmer: ${farmer.name}\nDate: ${dateStr}\nCrop: ${cropName}\n\n`;
-        message += `📦 *${bagWeights.length} Individual Boris:*\n`;
+        let message = `*Rular Ledger ${t("Crop Delivery")}*\n--------------------\n${t("Farmer")}: ${farmer.name}\n${t("Date")}: ${dateStr}\n${t("Crop")}: ${t(cropName)}\n\n`;
+        message += `📦 *${bagWeights.length} ${t("Individual Bags")}:*\n`;
         bagWeights.forEach((w, i) => { message += `${i + 1}. ${w}kg\n`; });
         message += `\n*Summary:*\n`;
-        message += `• Total Weight: ${totalWeight.toFixed(2)}kg\n`;
-        if (kardaWeight > 0) message += `• Karda Cut: -${kardaWeight}kg\n`;
-        message += `• Net Weight: ${netWeight}kg\n`;
-        message += `• Rate: ₹${rate}/kg\n`;
-        message += `• Gross: +₹${Math.round(netWeight * rate).toLocaleString('en-IN')}\n`;
-        if (palledariAmount > 0) message += `• 👷 Palledari: -₹${palledariAmount}\n`;
-        message += `--------------------\n*Net Amount: ₹${netAmount.toLocaleString('en-IN')}*\n\nThank you for trading with us!`;
+        message += `• ${t("Total Weight")}: ${totalWeight.toFixed(2)}kg\n`;
+        if (kardaWeight > 0) message += `• ${t("Karda Cut")}: -${kardaWeight}kg\n`;
+        message += `• ${t("Net Weight")}: ${netWeight}kg\n`;
+        message += `• ${t("Rate")}: ₹${rate}/kg\n`;
+        message += `• ${t("Gross")}: +₹${Math.round(netWeight * rate).toLocaleString('en-IN')}\n`;
+        if (palledariAmount > 0) message += `• 👷 ${t("Palledari")}: -₹${palledariAmount}\n`;
+        message += `--------------------\n*${t("Net Amount")}: ₹${netAmount.toLocaleString('en-IN')}*\n\n${t("Thank you for trading with us!")}`;
 
         const encoded = encodeURIComponent(message);
         const phone = farmer.phone ? String(farmer.phone).replace(/\D/g, '') : '';
         
         if (phone) {
           if (res._offline) {
-            showToast("Saved offline. Message will send when online.", "success");
+            showToast(t("Saved offline. Message will send when online."), "success");
           } else {
             const url = `https://wa.me/91${phone}?text=${encoded}`;
             window.open(url, '_blank');
@@ -216,7 +218,7 @@ export default function WeighCrop() {
       }, 1500);
     } catch (err) {
       console.error(err);
-      showToast(err.message || "Failed to save. Please try again.", "error");
+      showToast(err.message || t("Failed to save. Please try again."), "error");
       setSaving(false);
     }
   }
@@ -225,10 +227,10 @@ export default function WeighCrop() {
 
   if (success)
     return (
-      <AppLayout title="Weigh Crop" showBack munsiMode>
+      <AppLayout title={t("Weigh Crop")} showBack munsiMode>
         <div className="flex flex-col items-center justify-center h-64 gap-3 mt-16">
           <div className="text-5xl">✅</div>
-          <p className="font-bold text-[#2a6c4a] text-lg">Entry Saved!</p>
+          <p className="font-bold text-[#2a6c4a] text-lg">{t("Entry Saved!")}</p>
           <p className="text-gray-400 text-sm">
             {totalBags} bags · Net: {netWeight} kg · {formatINR(netAmount)}
           </p>
@@ -241,7 +243,7 @@ export default function WeighCrop() {
   );
 
   return (
-    <AppLayout title="Weigh Crop" showBack munsiMode>
+    <AppLayout title={t("Weigh Crop")} showBack munsiMode>
       {/* Outer container (Native Android gray background) */}
       <div className="flex flex-col bg-gray-50 relative overflow-hidden" style={{ height: "calc(100vh - 112px)" }}>
         
@@ -257,7 +259,7 @@ export default function WeighCrop() {
               <div className="flex items-center gap-3">
                 <span className="text-2xl">👤</span>
                 <div className="text-gray-900 font-bold text-lg truncate">
-                  {farmerId ? farmers.find(f => f._id === farmerId)?.name || "Selected" : "Tap to select farmer..."}
+                  {farmerId ? farmers.find(f => f._id === farmerId)?.name || t("Selected") : t("Tap to select farmer...")}
                 </div>
               </div>
               <Search className="text-blue-500" size={20} />
@@ -267,16 +269,17 @@ export default function WeighCrop() {
               <div className="fixed inset-0 w-full max-w-[480px] mx-auto bg-gray-50 z-[100] flex flex-col">
                 <div className="bg-gradient-to-b from-blue-800 to-blue-700 px-4 pb-8 pt-4 rounded-b-[2rem] shadow-md relative z-10 shrink-0">
                   <div className="flex items-center gap-3 mb-4 mt-2">
-                    <button onClick={() => setShowDropdown(false)} className="text-white bg-white/20 p-2 rounded-full active:scale-95 transition-transform">
+                    <button onClick={() => setShowDropdown(false)} aria-label={t("Close farmer selection")} className="text-white bg-white/20 p-2 rounded-full active:scale-95 transition-transform">
                       <X size={24} />
                     </button>
-                    <h2 className="text-white text-xl font-bold">Select Farmer</h2>
+                    <h2 className="text-white text-xl font-bold">{t("Select Farmer")}</h2>
                   </div>
                   <div className="relative">
                     <input
                       autoFocus
                       type="text"
-                      placeholder="Search by name or phone..."
+                      placeholder={t("Search by name or phone...")}
+                      aria-label={t("Search by name or phone")}
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       className="w-full bg-white text-gray-900 placeholder-gray-400 rounded-2xl px-12 py-3.5 text-sm font-semibold shadow-inner focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all"
@@ -289,12 +292,12 @@ export default function WeighCrop() {
                   {farmers.length === 0 ? (
                     <div className="rounded-2xl bg-white p-8 text-center">
                       <p className="font-bold text-gray-700">
-                        {searchQuery ? "No farmers match your search." : "No farmers have been added yet."}
+                        {searchQuery ? t("No farmers match your search.") : t("No farmers have been added yet.")}
                       </p>
                       <p className="mt-1 text-sm text-gray-500">
                         {searchQuery
-                          ? "Try another name or phone number."
-                          : "Ask the mandi owner or accountant to add a farmer first."}
+                          ? t("Try another name or phone number.")
+                          : t("Ask the mandi owner or accountant to add a farmer first.")}
                       </p>
                       {searchQuery && (
                         <button
@@ -302,7 +305,7 @@ export default function WeighCrop() {
                           onClick={() => setSearchQuery("")}
                           className="mt-3 min-h-11 rounded-xl bg-blue-50 px-4 text-sm font-bold text-blue-700"
                         >
-                          Clear search
+                          {t("Clear search")}
                         </button>
                       )}
                     </div>
@@ -346,7 +349,7 @@ export default function WeighCrop() {
                 className={`flex-1 py-4 rounded-3xl border transition-all flex flex-col items-center justify-center shadow-sm ${cropType === c.key ? "bg-white border-blue-500 text-blue-600 ring-2 ring-blue-500/20 scale-[1.02]" : "bg-white border-gray-100 text-gray-800 hover:bg-gray-50"}`}
               >
                 <span className="text-3xl mb-1">{c.emoji}</span>
-                <span className="text-xs font-black uppercase tracking-wider">{c.label}</span>
+                <span className="text-xs font-black uppercase tracking-wider">{t(c.label)}</span>
               </button>
             ))}
           </div>
@@ -354,7 +357,7 @@ export default function WeighCrop() {
           {/* Rate & Quality (White Card) */}
           <div className="bg-white border border-gray-100 rounded-[2rem] p-5 shadow-[0_4px_15px_rgba(0,0,0,0.03)] flex flex-col gap-4">
             <div className="flex items-center justify-between">
-              <span className="text-gray-700 text-sm font-bold uppercase tracking-wider">Rate (₹/kg)</span>
+              <span className="text-gray-700 text-sm font-bold uppercase tracking-wider">{t("Rate (₹/kg)")}</span>
               <input
                 type="number"
                 step="0.25"
@@ -375,7 +378,7 @@ export default function WeighCrop() {
                     onClick={() => applyQuality(q.pct)}
                     className={`flex-1 py-2 rounded-xl border text-[11px] font-black uppercase transition-all shadow-sm ${isActive ? q.activeClass : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"}`}
                   >
-                    {q.label}
+                    {t(q.label)}
                     <span className="block text-[10px] font-medium opacity-80 mt-0.5">
                       ₹{Math.round(marketRate * q.pct * 100) / 100}
                     </span>
@@ -390,8 +393,8 @@ export default function WeighCrop() {
             {/* Karda */}
             <div className="flex-1 bg-white border border-gray-100 rounded-[2rem] p-5 shadow-[0_4px_15px_rgba(0,0,0,0.03)] flex flex-col justify-between">
               <div className="flex items-center justify-between mb-4">
-                <span className="text-gray-700 text-xs font-bold uppercase tracking-wider">Karda</span>
-                <div className="relative inline-block w-10 h-5 cursor-pointer" onClick={() => setApplyKarda(!applyKarda)}>
+                <span className="text-gray-700 text-xs font-bold uppercase tracking-wider">{t("Karda")}</span>
+                <div role="switch" aria-label={t("Apply Karda")} aria-checked={applyKarda} tabIndex={0} className="relative inline-block w-10 h-5 cursor-pointer" onClick={() => setApplyKarda(!applyKarda)} onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setApplyKarda(v => !v); } }}>
                   <div className={`block w-10 h-5 rounded-full transition-colors ${applyKarda ? 'bg-[#2a5940]' : 'bg-gray-300'}`}></div>
                   <div className={`absolute left-1 top-0.5 bg-white w-4 h-4 rounded-full transition-transform ${applyKarda ? 'transform translate-x-5' : ''}`}></div>
                 </div>
@@ -405,7 +408,7 @@ export default function WeighCrop() {
                     onChange={e => setCustomKarda(e.target.value)}
                     className="w-full bg-gray-50 border border-gray-100 text-gray-900 px-3 py-2 rounded-xl focus:outline-none focus:bg-white focus:border-[#2a5940] text-center font-bold text-base"
                   />
-                  <span className="text-[10px] text-gray-600 font-semibold leading-tight">kg<br/>bag</span>
+                  <span className="text-[10px] text-gray-600 font-semibold leading-tight">{t("kg")}<br/>{t("bag")}</span>
                 </div>
               )}
             </div>
@@ -413,8 +416,8 @@ export default function WeighCrop() {
             {/* Palledari */}
             <div className="flex-1 bg-white border border-gray-100 rounded-[2rem] p-5 shadow-[0_4px_15px_rgba(0,0,0,0.03)] flex flex-col justify-between">
               <div className="flex items-center justify-between mb-4">
-                <span className="text-gray-700 text-xs font-bold uppercase tracking-wider">Labour</span>
-                <div className="relative inline-block w-10 h-5 cursor-pointer" onClick={() => setApplyLabour(!applyLabour)}>
+                <span className="text-gray-700 text-xs font-bold uppercase tracking-wider">{t("Labour")}</span>
+                <div role="switch" aria-label={t("Apply Labour")} aria-checked={applyLabour} tabIndex={0} className="relative inline-block w-10 h-5 cursor-pointer" onClick={() => setApplyLabour(!applyLabour)} onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setApplyLabour(v => !v); } }}>
                   <div className={`block w-10 h-5 rounded-full transition-colors ${applyLabour ? 'bg-orange-500' : 'bg-gray-300'}`}></div>
                   <div className={`absolute left-1 top-0.5 bg-white w-4 h-4 rounded-full transition-transform ${applyLabour ? 'transform translate-x-5' : ''}`}></div>
                 </div>
@@ -428,7 +431,7 @@ export default function WeighCrop() {
                     onChange={e => setCustomLabour(e.target.value)}
                     className="w-full bg-gray-50 border border-gray-100 text-gray-900 px-3 py-2 rounded-xl focus:outline-none focus:bg-white focus:border-orange-400 text-center font-bold text-base"
                   />
-                  <span className="text-[10px] text-gray-600 font-semibold leading-tight">₹<br/>bag</span>
+                  <span className="text-[10px] text-gray-600 font-semibold leading-tight">₹<br/>{t("bag")}</span>
                 </div>
               )}
             </div>
@@ -443,7 +446,7 @@ export default function WeighCrop() {
               className="w-full bg-white text-blue-600 font-black text-lg py-4 rounded-full shadow-[0_10px_30px_rgba(0,0,0,0.2)] border border-white flex items-center justify-center gap-3 active:scale-[0.98] transition-transform"
             >
               <Scale size={24} className="text-blue-600" />
-              START WEIGHING ➔
+              {t("START WEIGHING")} ➔
             </button>
           </div>
         )}
@@ -457,9 +460,9 @@ export default function WeighCrop() {
           <div className="flex justify-between items-center px-6 py-4 border-b border-gray-100 shrink-0">
             <h3 className="font-black text-xl text-gray-800 flex items-center gap-2">
               <Scale size={20} className="text-[#2a5940]"/>
-              Weigh Bags
+              {t("Weigh Bags")}
             </h3>
-            <button onClick={() => setShowCalculator(false)} className="bg-gray-100 p-2 rounded-full text-gray-500 hover:bg-gray-200 active:scale-90 transition-all">
+            <button onClick={() => setShowCalculator(false)} aria-label={t("Close weighing panel")} className="bg-gray-100 p-2 rounded-full text-gray-500 hover:bg-gray-200 active:scale-90 transition-all">
               <X size={20} strokeWidth={3} />
             </button>
           </div>
@@ -469,15 +472,15 @@ export default function WeighCrop() {
             {/* DYNAMIC ISLAND STATS (White Glassmorphism inside Sheet) */}
             <div className="bg-gradient-to-r from-[#2a5940]/10 to-[#1e3c45]/10 border border-[#2a5940]/20 rounded-[2rem] p-3 flex shadow-sm items-center justify-between mb-2 shrink-0">
               <div className="text-center px-2 border-r border-[#2a5940]/20 flex-1">
-                <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest">Bags</p>
+                <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest">{t("Bags")}</p>
                 <p className="text-2xl font-black text-[#2a5940] leading-none mt-1">{totalBags}</p>
               </div>
               <div className="text-center px-2 border-r border-[#2a5940]/20 flex-1">
-                <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest">Net Wt</p>
+                <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest">{t("Net Wt")}</p>
                 <p className="text-2xl font-black text-[#2a5940] leading-none mt-1">{netWeight}<span className="text-[11px] font-medium ml-0.5">kg</span></p>
               </div>
               <div className="text-center pl-2 flex-1">
-                <p className="text-[10px] text-[#2a5940] font-black uppercase tracking-widest">Payout</p>
+                <p className="text-[10px] text-[#2a5940] font-black uppercase tracking-widest">{t("Payout")}</p>
                 <p className="text-2xl font-black text-[#2a5940] leading-none mt-1">{formatINR(netAmount)}</p>
               </div>
             </div>
@@ -486,7 +489,7 @@ export default function WeighCrop() {
             <div className="mb-2 shrink-0">
               {bagWeights.length === 0 ? (
                 <div className="bg-gray-50 border border-gray-100 rounded-[1.5rem] py-3 text-center shadow-inner">
-                  <p className="text-gray-400 text-xs font-bold uppercase tracking-widest">No bags weighed yet</p>
+                  <p className="text-gray-400 text-xs font-bold uppercase tracking-widest">{t("No bags weighed yet")}</p>
                 </div>
               ) : (
                 <div ref={chipsRef} className="flex gap-2 overflow-x-auto items-center py-1 scroll-smooth" style={{ scrollbarWidth: "none" }}>
@@ -514,7 +517,7 @@ export default function WeighCrop() {
             <div className="flex items-end justify-between bg-gray-50 rounded-[2rem] px-5 py-2 border border-gray-200 shadow-inner mb-2 shrink-0">
               <div>
                 <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">
-                  Entering Bag #{totalBags + 1}
+                  {t("Entering Bag")} #{totalBags + 1}
                 </p>
                 {currentVal > 0 && rate > 0 && (
                   <p className="text-[12px] text-[#2a5940] font-black">
@@ -562,7 +565,7 @@ export default function WeighCrop() {
               {/* 1/4 Width: Actions */}
               <div className="w-1/4 flex flex-col gap-3">
                 <button onClick={() => tap("C")} className="flex-1 rounded-[2rem] bg-orange-100 text-orange-600 font-black text-xl active:scale-90 transition-all border border-orange-200 shadow-md flex items-center justify-center">
-                  AC
+                  {t("AC")}
                 </button>
                 <button onClick={() => tap("←")} className="flex-1 rounded-[2rem] bg-gray-100 text-gray-600 font-black text-xl active:scale-90 transition-all border border-gray-200 shadow-sm flex items-center justify-center">
                   ⌫
@@ -573,7 +576,7 @@ export default function WeighCrop() {
                   className={`flex-[2] rounded-[2rem] font-black flex flex-col items-center justify-center gap-1 transition-all active:scale-90 shadow-xl ${currentVal > 0 ? "bg-indigo-600 text-white" : "bg-gray-200 text-gray-400 shadow-none"}`}
                 >
                   <span className="text-4xl leading-none">+</span>
-                  <span className="text-[12px] uppercase tracking-widest">Add</span>
+                  <span className="text-[12px] uppercase tracking-widest">{t("Add")}</span>
                 </button>
               </div>
             </div>
@@ -586,12 +589,12 @@ export default function WeighCrop() {
                 className="w-full bg-[#0f2027] disabled:bg-gray-200 disabled:text-gray-400 text-white rounded-3xl py-4 font-black text-base active:scale-[0.98] transition-all shadow-xl disabled:shadow-none"
               >
                 {saving
-                  ? "SAVING..."
+                  ? t("SAVING...")
                   : !farmerId
-                    ? "SELECT FARMER (CLOSE PANEL)"
+                    ? t("SELECT FARMER (CLOSE PANEL)")
                     : !bagWeights.length
-                      ? "ADD BAG WEIGHTS ABOVE"
-                      : `SUBMIT ${totalBags} BAGS ➔`}
+                      ? t("ADD BAG WEIGHTS ABOVE")
+                      : `${t("SUBMIT")} ${totalBags} ${t("BAGS")} ➔`}
               </button>
             </div>
             

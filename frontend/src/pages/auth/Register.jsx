@@ -19,11 +19,13 @@ import { showToast } from "../../lib/toast.js";
 import AuthField from "../../components/auth/AuthField.jsx";
 import AuthHero, { authHeroGradients } from "../../components/auth/AuthHero.jsx";
 import OtpInput from "../../components/OtpInput.jsx";
+import { useTranslation } from "../../lib/i18n.jsx";
 
 const buttonBase =
   "flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-blue-600 px-4 py-3 text-sm font-extrabold text-white shadow-[0_8px_18px_rgba(37,99,235,.32)] transition active:scale-[.99] disabled:cursor-not-allowed disabled:opacity-60";
 
 export default function Register() {
+  const { t } = useTranslation();
   const [, navigate] = useLocation();
   const [step, setStep] = useState(1);
   const [form, setForm] = useState({
@@ -51,11 +53,11 @@ export default function Register() {
 
   const requestOtps = async () => {
     if (!form.phone || !/^\d{10}$/.test(form.phone)) {
-      showToast("error", "Please enter a valid 10-digit mobile number");
+      showToast("error", t("Please enter a valid 10-digit mobile number"));
       return false;
     }
     if (!form.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
-      showToast("error", "Please enter a valid email address");
+      showToast("error", t("Please enter a valid email address"));
       return false;
     }
 
@@ -71,7 +73,7 @@ export default function Register() {
       setEmailOtp("");
       return true;
     } catch (err) {
-      showToast("error", err.message || "Failed to send verification OTPs");
+      showToast("error", t(err.message || "Failed to send verification OTPs"));
       return false;
     } finally {
       setLoading(false);
@@ -81,27 +83,27 @@ export default function Register() {
   const handleBusinessNext = async (event) => {
     event.preventDefault();
     if (!form.businessName.trim()) {
-      return showToast("error", "Please enter your firm or mandi name");
+      return showToast("error", t("Please enter your firm or mandi name"));
     }
     const sent = await requestOtps();
     if (sent) {
       setStep(3);
-      showToast("success", "Verification OTPs sent");
+      showToast("success", t("Verification OTPs sent"));
     }
   };
 
   const handleResend = async () => {
     const sent = await requestOtps();
-    if (sent) showToast("success", "Verification OTPs sent again");
+    if (sent) showToast("success", t("Verification OTPs sent again"));
   };
 
   const handleRegister = async (event) => {
     event.preventDefault();
     if (!phoneOtp || phoneOtp.length !== 6) {
-      return showToast("error", "Please enter valid 6-digit phone OTP");
+      return showToast("error", t("Please enter valid 6-digit phone OTP"));
     }
     if (!emailOtp || emailOtp.length !== 6) {
-      return showToast("error", "Please enter valid 6-digit email OTP");
+      return showToast("error", t("Please enter valid 6-digit email OTP"));
     }
 
     setLoading(true);
@@ -122,10 +124,10 @@ export default function Register() {
       localStorage.setItem("accessToken", res.accessToken);
       sessionStorage.setItem("unlocked", "true");
       sessionStorage.setItem("showWelcomeSplash", "true");
-      showToast("success", "Mandi account created successfully!");
+      showToast("success", t("Mandi account created successfully!"));
       window.location.href = "/";
     } catch (err) {
-      showToast("error", err.message || "Registration failed");
+      showToast("error", t(err.message || "Registration failed"));
     } finally {
       setLoading(false);
     }
@@ -133,18 +135,18 @@ export default function Register() {
 
   const handleCredentialsNext = (event) => {
     event.preventDefault();
-    if (!form.ownerName.trim()) return showToast("error", "Please enter your name");
+    if (!form.ownerName.trim()) return showToast("error", t("Please enter your name"));
     if (!form.phone || !/^\d{10}$/.test(form.phone)) {
-      return showToast("error", "Please enter a valid 10-digit mobile number");
+      return showToast("error", t("Please enter a valid 10-digit mobile number"));
     }
     if (!form.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
-      return showToast("error", "Please enter a valid email address");
+      return showToast("error", t("Please enter a valid email address"));
     }
     if (!form.password || form.password.length < 6) {
-      return showToast("error", "Password must be at least 6 characters");
+      return showToast("error", t("Password must be at least 6 characters"));
     }
     if (form.password !== form.confirmPassword) {
-      return showToast("error", "Passwords do not match");
+      return showToast("error", t("Passwords do not match"));
     }
     setStep(2);
   };
@@ -162,13 +164,13 @@ export default function Register() {
     >
       <AuthHero
         role="seth"
-        eyebrow="New mandi registration"
+        eyebrow={t("New mandi registration")}
         {...heroTitles[step]}
         height="clamp(145px, 25.5dvh, 235px)"
         onBack={() => step === 1 ? navigate("/") : setStep(step - 1)}
       />
       <section className="relative z-10 -mt-5 flex min-h-0 flex-1 flex-col overflow-hidden rounded-t-[28px] bg-white px-4 pb-2 pt-3 shadow-[0_-8px_24px_rgba(15,23,42,.12)]">
-        <div className="mb-2 flex shrink-0 gap-2" aria-label={`Step ${step} of 3`}>
+        <div className="mb-2 flex shrink-0 gap-2" aria-label={`${t("Registration step")} ${step} / 3`}>
           {[1, 2, 3].map((segment) => (
             <span
               key={segment}
@@ -267,10 +269,10 @@ export default function Register() {
               }
             />
             <button type="submit" className={`${buttonBase} min-h-11 py-2`}>
-              Next: Business <ArrowRight size={17} />
+              {t("Next: Business")} <ArrowRight size={17} />
             </button>
             <p className="text-center text-sm font-semibold text-slate-600">
-              Already registered?                             <Link href="/login" className="inline-flex min-h-11 items-center font-extrabold text-blue-700">Log in</Link>
+              {t("Already registered?")} <Link href="/login" className="inline-flex min-h-11 items-center font-extrabold text-blue-700">{t("Log in")}</Link>
             </p>
           </form>
         )}
@@ -320,10 +322,10 @@ export default function Register() {
                 onClick={() => setStep(1)}
                 className="flex min-h-11 items-center justify-center gap-2 rounded-2xl border-2 border-slate-400 px-3 text-sm font-bold text-slate-800 shadow-field"
               >
-                <ArrowLeft size={16} /> Back
+                <ArrowLeft size={16} /> {t("Back")}
               </button>
               <button type="submit" disabled={loading} className={`${buttonBase} min-h-11 py-2`}>
-                {loading ? "Sending..." : "Next: Verify"} <ArrowRight size={17} />
+                {loading ? t("Sending...") : t("Next: Verify")} <ArrowRight size={17} />
               </button>
             </div>
           </form>
@@ -333,31 +335,31 @@ export default function Register() {
           <form onSubmit={handleRegister} className="flex min-h-0 flex-1 flex-col space-y-1.5">
 
             <div className="flex flex-wrap gap-1.5 rounded-2xl bg-blue-50 p-2 text-sm font-bold text-blue-900">
-              <span className="rounded-full bg-white px-2.5 py-1">{form.businessName || "Your mandi"}</span>
+              <span className="rounded-full bg-white px-2.5 py-1">{form.businessName || t("Your mandi")}</span>
               <span className="rounded-full bg-white px-2.5 py-1">{form.ownerName}</span>
-              <span className="rounded-full bg-white px-2.5 py-1">{form.village || "Village not added"}</span>
+              <span className="rounded-full bg-white px-2.5 py-1">{form.village || t("Village not added")}</span>
             </div>
 
             {(demoPhoneOtp || demoEmailOtp) && (
               <div className="grid grid-cols-2 gap-2 text-center text-xs font-bold text-emerald-800">
-                {demoPhoneOtp && <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-2 py-1.5">Phone OTP: {demoPhoneOtp}</p>}
-                {demoEmailOtp && <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-2 py-1.5">Email OTP: {demoEmailOtp}</p>}
+                {demoPhoneOtp && <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-2 py-1.5">{t("Phone OTP:")} {demoPhoneOtp}</p>}
+                {demoEmailOtp && <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-2 py-1.5">{t("Email OTP:")} {demoEmailOtp}</p>}
               </div>
             )}
 
             <div>
-              <p className="mb-0.5 text-[13px] font-bold text-slate-700">Phone OTP</p>
+              <p className="mb-0.5 text-[13px] font-bold text-slate-700">{t("Phone OTP")}</p>
               <OtpInput length={6} value={phoneOtp} onChange={setPhoneOtp} onComplete={setPhoneOtp} />
-              <p className="mt-1 text-xs font-medium text-slate-600">Sent to {form.phone}</p>
+              <p className="mt-1 text-xs font-medium text-slate-600">{t("Sent to")} {form.phone}</p>
             </div>
             <div>
-              <p className="mb-0.5 text-[13px] font-bold text-slate-700">Email OTP</p>
+              <p className="mb-0.5 text-[13px] font-bold text-slate-700">{t("Email OTP")}</p>
               <OtpInput length={6} value={emailOtp} onChange={setEmailOtp} onComplete={setEmailOtp} />
-              <p className="mt-1 text-xs font-medium text-slate-600">Sent to {form.email}</p>
+              <p className="mt-1 text-xs font-medium text-slate-600">{t("Sent to")} {form.email}</p>
             </div>
 
             <button type="button" onClick={handleResend} disabled={loading} className="min-h-11 w-full text-sm font-bold text-blue-700 underline underline-offset-2 disabled:opacity-60">
-              {loading ? "Sending new codes..." : "Resend OTPs"}
+              {loading ? t("Sending new codes...") : t("Resend OTPs")}
             </button>
             <div className="grid grid-cols-2 gap-3">
               <button
@@ -365,10 +367,10 @@ export default function Register() {
                 onClick={() => setStep(2)}
                 className="flex min-h-11 items-center justify-center gap-2 rounded-2xl border-2 border-slate-400 px-3 text-sm font-bold text-slate-800 shadow-field"
               >
-                <ArrowLeft size={16} /> Back
+                <ArrowLeft size={16} /> {t("Back")}
               </button>
               <button type="submit" disabled={loading} className={`${buttonBase} min-h-11 py-2`}>
-                {loading ? "Creating..." : "Create account"} <ArrowRight size={17} />
+                {loading ? t("Creating...") : t("Create account")} <ArrowRight size={17} />
               </button>
             </div>
           </form>

@@ -6,6 +6,7 @@ import { AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, Tool
 import { AlertCircle, TrendingUp, Users, Search } from "lucide-react";
 import { getAvatarColor, getInitials } from "../lib/crop.js";
 import { Link } from "wouter";
+import { useTranslation } from "../lib/i18n.jsx";
 
 const TIMEFRAMES = [
   { id: '1d', label: '1D', days: 1 },
@@ -16,6 +17,7 @@ const TIMEFRAMES = [
 ];
 
 export default function InterestDashboard() {
+  const { t } = useTranslation();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [globalTimeframe, setGlobalTimeframe] = useState(TIMEFRAMES[4]);
@@ -92,19 +94,19 @@ export default function InterestDashboard() {
   }, [page]);
 
   if (loading || !data) return (
-    <AppLayout title="Interest Tracking">
+    <AppLayout title={t("Interest Tracking")}>
       <div className="p-4 space-y-3">{[1,2,3].map(i => <div key={i} className="h-32 bg-gray-100 rounded-2xl animate-pulse" />)}</div>
     </AppLayout>
   );
 
   return (
-    <AppLayout title="Interest Dashboard" showBack={true}>
+    <AppLayout title={t("Interest Dashboard")} showBack={true}>
       {/* Header Section */}
       <div className="bg-gradient-to-b from-blue-800 to-blue-700 px-4 pb-12 pt-4 rounded-b-[2rem] shadow-md relative z-0">
         <div className="flex justify-between items-center mb-4 px-1">
           <div>
-            <p className="text-blue-200 text-xs font-medium uppercase tracking-wider mb-1">Financial Operations</p>
-            <h2 className="text-white text-xl font-bold">Interest Projections</h2>
+            <p className="text-blue-200 text-xs font-medium uppercase tracking-wider mb-1">{t("Financial Operations")}</p>
+            <h2 className="text-white text-xl font-bold">{t("Interest Projections")}</h2>
           </div>
           <div className="flex bg-white/10 p-0.5 rounded-full border border-white/20">
             {TIMEFRAMES.map(tf => (
@@ -117,7 +119,7 @@ export default function InterestDashboard() {
         <div className="grid grid-cols-2 gap-3">
           <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 shadow-sm col-span-2 flex items-center justify-between">
             <div>
-              <p className="text-white/80 text-[10px] font-bold uppercase tracking-widest">Total Outstanding Debt</p>
+              <p className="text-white/80 text-[10px] font-bold uppercase tracking-widest">{t("Total Outstanding Debt")}</p>
               <p className="font-black text-3xl mt-1 text-white">{formatINR(data.outstandingInterest)}</p>
             </div>
             <div className="p-3 bg-white/20 rounded-xl">
@@ -126,11 +128,11 @@ export default function InterestDashboard() {
           </div>
           
           <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 shadow-sm">
-            <p className="text-white/80 text-[10px] font-bold uppercase tracking-widest">Lifetime Accrued</p>
+            <p className="text-white/80 text-[10px] font-bold uppercase tracking-widest">{t("Lifetime Accrued")}</p>
             <p className="font-black text-lg mt-1 text-blue-200">{formatINR(data.totalAccrued)}</p>
           </div>
           <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 shadow-sm">
-            <p className="text-white/80 text-[10px] font-bold uppercase tracking-widest">Recovered</p>
+            <p className="text-white/80 text-[10px] font-bold uppercase tracking-widest">{t("Recovered")}</p>
             <p className="font-black text-lg mt-1 text-green-300">{formatINR(data.totalRecovered)}</p>
           </div>
         </div>
@@ -142,8 +144,8 @@ export default function InterestDashboard() {
         <div className="bg-white rounded-3xl border border-gray-100 shadow-[0_8px_30px_rgba(0,0,0,0.04)] p-5">
           <div className="flex justify-between items-center mb-4">
             <div>
-              <h3 className="font-bold text-gray-900 text-lg">Interest Trend</h3>
-              <p className="text-xs text-gray-500 font-medium mt-0.5">Accrued interest over time</p>
+              <h3 className="font-bold text-gray-900 text-lg">{t("Interest Trend")}</h3>
+              <p className="text-xs text-gray-500 font-medium mt-0.5">{t("Accrued interest over time")}</p>
             </div>
           </div>
           
@@ -165,7 +167,7 @@ export default function InterestDashboard() {
                 <Tooltip 
                   cursor={{ stroke: '#cbd5e1', strokeWidth: 1, strokeDasharray: '4 4' }} 
                   contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)', padding: '12px' }} 
-                  formatter={(value) => [formatINR(value), 'Interest Accrued']}
+                  formatter={(value) => [formatINR(value), t("Interest Accrued")]}
                 />
                 <Area type="monotone" dataKey="amount" stroke="#8b5cf6" strokeWidth={4} fillOpacity={1} fill="url(#colorTrend)" filter="url(#shadowTrend)" />
               </AreaChart>
@@ -176,8 +178,8 @@ export default function InterestDashboard() {
         {/* Monthly Bar Chart: Accrued vs Recovered */}
         <div className="bg-white rounded-3xl border border-gray-100 shadow-[0_8px_30px_rgba(0,0,0,0.04)] p-5 mt-5">
           <div className="mb-4">
-            <h3 className="font-bold text-gray-900 text-lg">Earned vs Collected Interest</h3>
-            <p className="text-xs text-gray-500 font-medium mt-0.5">What we earned vs what we actually got paid</p>
+            <h3 className="font-bold text-gray-900 text-lg">{t("Earned vs Collected Interest")}</h3>
+            <p className="text-xs text-gray-500 font-medium mt-0.5">{t("What we earned vs what we actually got paid")}</p>
           </div>
           
           <div className="h-56 w-full">
@@ -192,8 +194,8 @@ export default function InterestDashboard() {
                   formatter={(value) => formatINR(value)}
                 />
                 <Legend iconType="circle" wrapperStyle={{ fontSize: '11px', fontWeight: 600, paddingTop: '10px' }} />
-                <Bar dataKey="amount" name="Earned" fill="#fbbf24" radius={[6, 6, 0, 0]} barSize={14} />
-                <Bar dataKey="recovered" name="Collected" fill="#10b981" radius={[6, 6, 0, 0]} barSize={14} />
+                <Bar dataKey="amount" name={t("Earned")} fill="#fbbf24" radius={[6, 6, 0, 0]} barSize={14} />
+                <Bar dataKey="recovered" name={t("Collected")} fill="#10b981" radius={[6, 6, 0, 0]} barSize={14} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -202,8 +204,8 @@ export default function InterestDashboard() {
         {/* Debt Composition Pie Chart */}
         <div className="bg-white rounded-3xl border border-gray-100 shadow-[0_8px_30px_rgba(0,0,0,0.04)] overflow-hidden">
           <div className="p-5 pb-0">
-            <h3 className="font-bold text-gray-900 text-lg">Money Distributed</h3>
-            <p className="text-xs text-gray-500 font-medium mt-0.5">Principal vs Interest Breakdown</p>
+            <h3 className="font-bold text-gray-900 text-lg">{t("Money Distributed")}</h3>
+            <p className="text-xs text-gray-500 font-medium mt-0.5">{t("Principal vs Interest Breakdown")}</p>
           </div>
           <div className="flex items-center h-48 mt-2">
             <div className="w-1/2 h-full">
@@ -211,8 +213,8 @@ export default function InterestDashboard() {
                 <PieChart>
                   <Pie 
                     data={[
-                      { name: "Principal", value: data.totalAdvances },
-                      { name: "Interest", value: data.outstandingInterest }
+                      { name: t("Principal"), value: data.totalAdvances },
+                      { name: t("Interest"), value: data.outstandingInterest }
                     ]} 
                     dataKey="value" nameKey="name"
                     cx="50%" cy="50%" innerRadius={45} outerRadius={65} stroke="#ffffff" strokeWidth={3} paddingAngle={0}
@@ -228,14 +230,14 @@ export default function InterestDashboard() {
               <div>
                 <div className="flex items-center gap-2 mb-1">
                   <div className="w-3.5 h-3.5 rounded-md bg-indigo-500 shadow-sm"></div>
-                  <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Principal</span>
+                  <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">{t("Principal")}</span>
                 </div>
                 <p className="text-base font-black text-gray-900">{formatINR(data.totalAdvances)}</p>
               </div>
               <div>
                 <div className="flex items-center gap-2 mb-1">
                   <div className="w-3.5 h-3.5 rounded-md bg-rose-500 shadow-sm"></div>
-                  <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Interest</span>
+                  <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">{t("Interest")}</span>
                 </div>
                 <p className="text-base font-black text-gray-900">{formatINR(data.outstandingInterest)}</p>
               </div>
@@ -245,7 +247,7 @@ export default function InterestDashboard() {
 
         {/* Debtors Search Header */}
         <div className="mt-8 mb-3 px-1 flex items-center justify-between">
-          <h3 className="font-bold text-gray-900 text-lg">Defaulting Accounts</h3>
+          <h3 className="font-bold text-gray-900 text-lg">{t("Defaulting Accounts")}</h3>
           <Users size={18} className="text-gray-400" />
         </div>
         
@@ -256,7 +258,8 @@ export default function InterestDashboard() {
           <input
             type="text"
             className="w-full bg-white text-gray-900 placeholder-gray-400 rounded-2xl pl-12 pr-4 py-3.5 text-sm font-semibold shadow-[0_4px_15px_rgba(0,0,0,0.03)] border border-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all"
-            placeholder="Search debtors by name or phone..."
+            placeholder={t("Search debtors by name or phone...")}
+            aria-label={t("Search debtors by name or phone")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -265,7 +268,7 @@ export default function InterestDashboard() {
         {/* Top Debtors Leaderboard Cards */}
         <div className="flex flex-col gap-3">
           {debtors.length === 0 ? (
-            <p className="text-center text-gray-400 py-12 text-sm font-bold">No outstanding advances found</p>
+            <p className="text-center text-gray-400 py-12 text-sm font-bold">{t("No outstanding advances found")}</p>
           ) : (
             debtors.map((farmer, idx) => {
               const isLast = idx === debtors.length - 1;
@@ -286,10 +289,10 @@ export default function InterestDashboard() {
                       <p className="font-black text-red-500 text-base">{formatINR(farmer.totalOwed)}</p>
                       <div className="flex flex-col items-end gap-1 mt-0.5">
                         <span className="text-[9px] font-bold bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded shadow-sm">
-                          Adv: {formatINR(farmer.advanceAmount)}
+                          {t("Adv")}: {formatINR(farmer.advanceAmount)}
                         </span>
                         <span className="text-[9px] font-bold bg-pink-100 text-pink-700 px-1.5 py-0.5 rounded shadow-sm">
-                          Int: {formatINR(farmer.accruedInterest)}
+                          {t("Int")}: {formatINR(farmer.accruedInterest)}
                         </span>
                       </div>
                     </div>

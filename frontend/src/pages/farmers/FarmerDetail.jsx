@@ -7,10 +7,12 @@ import { formatINR, formatWeight } from "../../lib/format.js";
 import { getCropConfig, getAvatarColor, getInitials } from "../../lib/crop.js";
 import { showToast } from "../../lib/toast.js";
 import { MessageCircle } from "lucide-react";
+import { useTranslation } from "../../lib/i18n.jsx";
 
 const TABS = ["All", "Deliveries", "Payments", "Advances"];
 
 export default function FarmerDetail() {
+  const { t, language } = useTranslation();
   const { id } = useParams();
   const [farmer, setFarmer]     = useState(null);
   const [timeline, setTimeline] = useState([]);
@@ -76,17 +78,17 @@ export default function FarmerDetail() {
 
   function sendWhatsAppReceipt(txn) {
     if (!farmer) return;
-    const dateStr = new Date(txn.date || txn.createdAt).toLocaleDateString('en-IN');
+    const dateStr = new Date(txn.date || txn.createdAt).toLocaleDateString(language === "hi" ? "hi-IN" : "en-IN");
     let message = '';
 
     if (txn.type === 'delivery') {
       const cropName = txn.cropType ? txn.cropType.charAt(0).toUpperCase() + txn.cropType.slice(1) : '';
-      message = `*Rular Ledger Crop Delivery*\n--------------------\nFarmer: ${farmer.name}\nDate: ${dateStr}\n`;
-      if (cropName) message += `Crop: ${cropName}\n`;
+      message = `*Rular Ledger ${t("Crop Delivery")}*\n--------------------\n${t("Farmer")}: ${farmer.name}\n${t("Date")}: ${dateStr}\n`;
+      if (cropName) message += `${t("Crop")}: ${t(cropName)}\n`;
       message += `\n`;
       
       if (txn.bagWeights && txn.bagWeights.length > 0) {
-        message += `📦 *${txn.bagWeights.length} Individual Boris:*\n`;
+        message += `📦 *${txn.bagWeights.length} ${t("Individual Bags")}:*\n`;
         txn.bagWeights.forEach((w, i) => {
           message += `${i + 1}. ${w}kg\n`;
         });
@@ -94,25 +96,25 @@ export default function FarmerDetail() {
       }
       
       message += `*Summary:*\n`;
-      message += `• Total Weight: ${formatWeight(txn.totalWeight)}\n`;
+      message += `• ${t("Total Weight")}: ${formatWeight(txn.totalWeight)}\n`;
       if ((txn.kardaWeight || 0) > 0) {
-        message += `• Karda Cut: -${formatWeight(txn.kardaWeight)}\n`;
+        message += `• ${t("Karda Cut")}: -${formatWeight(txn.kardaWeight)}\n`;
       }
-      message += `• Net Weight: ${formatWeight(txn.netWeight ?? txn.totalWeight)}\n`;
-      message += `• Rate: ₹${txn.ratePerKg}/kg\n`;
-      message += `• Gross: +${formatINR((txn.netWeight ?? txn.totalWeight) * txn.ratePerKg)}\n`;
+      message += `• ${t("Net Weight")}: ${formatWeight(txn.netWeight ?? txn.totalWeight)}\n`;
+      message += `• ${t("Rate")}: ₹${txn.ratePerKg}/kg\n`;
+      message += `• ${t("Gross")}: +${formatINR((txn.netWeight ?? txn.totalWeight) * txn.ratePerKg)}\n`;
       if ((txn.palledariAmount || 0) > 0) {
-        message += `• 👷 Palledari: -${formatINR(txn.palledariAmount)}\n`;
+        message += `• 👷 ${t("Palledari")}: -${formatINR(txn.palledariAmount)}\n`;
       }
       
-      message += `--------------------\n*Net Amount: ${formatINR(txn.netAmount ?? txn.amount)}*\n\nThank you for trading with us!`;
+      message += `--------------------\n*${t("Net Amount")}: ${formatINR(txn.netAmount ?? txn.amount)}*\n\n${t("Thank you for trading with us!")}`;
     } else {
       const netCrop = formatINR(txn.cropAmount || 0);
       const recovery = formatINR((txn.jamaRecovered || 0) + (txn.advanceRecovered || 0) + (txn.interestRecovered || 0));
-      const chhoot = txn.chhootAmount ? `\nChhoot (Bonus): +${formatINR(txn.chhootAmount)}` : '';
+      const chhoot = txn.chhootAmount ? `\n${t("Chhoot (Bonus)")}: +${formatINR(txn.chhootAmount)}` : '';
       const payout = formatINR(txn.amount || 0);
 
-      message = `*Rular Ledger Receipt*\n--------------------\nFarmer: ${farmer.name}\nDate: ${dateStr}\n\nCrop Value: ${netCrop}\nTotal Recovery/Udhar: -${recovery}${chhoot}\n--------------------\n*Final Settlement Payout: ${payout}*\n\nThank you for trading with us!`;
+      message = `*Rular Ledger ${t("Receipt")}*\n--------------------\n${t("Farmer")}: ${farmer.name}\n${t("Date")}: ${dateStr}\n\n${t("Crop Value")}: ${netCrop}\n${t("Total Recovery/Udhar")}: -${recovery}${chhoot}\n--------------------\n*${t("Final Settlement Payout")}: ${payout}*\n\n${t("Thank you for trading with us!")}`;
     }
 
     const encoded = encodeURIComponent(message);
@@ -232,7 +234,7 @@ export default function FarmerDetail() {
       loadTimeline();
     } catch (err) {
       console.error(err);
-      showToast(err.message || "Failed to save. Please try again.", "error");
+      showToast(err.message || t("Failed to save. Please try again."), "error");
       setSaving(false);
     }
   }
@@ -255,24 +257,24 @@ export default function FarmerDetail() {
   });
 
   if (notFound) return (
-    <AppLayout title="Not Found" showBack>
+    <AppLayout title={t("Not Found")} showBack>
       <div className="p-12 text-center flex flex-col items-center h-[60vh] justify-center">
         <span className="text-6xl mb-4 grayscale opacity-50">🕵️</span>
-        <h2 className="text-xl font-bold text-gray-900 mb-2">Khata Not Found</h2>
-        <p className="text-gray-500 text-sm mb-6 max-w-[250px] leading-relaxed">This farmer may have been deleted or the link is invalid.</p>
-        <button onClick={() => history.back()} className="bg-gray-100 text-gray-700 px-6 py-2.5 rounded-xl font-bold hover:bg-gray-200 transition-colors border border-gray-200 shadow-sm active:scale-95">Go Back</button>
+        <h2 className="text-xl font-bold text-gray-900 mb-2">{t("Khata Not Found")}</h2>
+        <p className="text-gray-500 text-sm mb-6 max-w-[250px] leading-relaxed">{t("This farmer may have been deleted or the link is invalid.")}</p>
+        <button onClick={() => history.back()} className="bg-gray-100 text-gray-700 px-6 py-2.5 rounded-xl font-bold hover:bg-gray-200 transition-colors border border-gray-200 shadow-sm active:scale-95">{t("Go Back")}</button>
       </div>
     </AppLayout>
   );
 
   if (!farmer) return (
-    <AppLayout title="Farmer Khata" showBack>
-      <div className="p-8 text-center text-gray-400">Loading…</div>
+    <AppLayout title={t("Farmer Khata")} showBack>
+      <div className="p-8 text-center text-gray-400">{t("Loading…")}</div>
     </AppLayout>
   );
 
   return (
-    <AppLayout title="Farmer Khata" showBack>
+    <AppLayout title={t("Farmer Khata")} showBack>
 
       {/* ── Profile header ──────────────────────────────────────────────────── */}
       <div className="bg-gradient-to-b from-blue-800 to-blue-700 px-4 pb-8 pt-4 rounded-b-[2rem] shadow-md relative z-0">
@@ -284,10 +286,10 @@ export default function FarmerDetail() {
             <div className="flex-1">
               <div className="flex items-center justify-between">
                 <h2 className="text-white font-bold text-xl">{farmer.name}</h2>
-                <button onClick={openEditModal} className="text-blue-700 bg-white px-3 py-1.5 rounded-xl text-xs font-bold shadow-sm active:scale-95 transition-transform">✏️ Edit Profile</button>
+                <button onClick={openEditModal} className="text-blue-700 bg-white px-3 py-1.5 rounded-xl text-xs font-bold shadow-sm active:scale-95 transition-transform">✏️ {t("Edit Profile")}</button>
               </div>
               <p className="text-white/80 text-xs mt-1 font-medium">📍 {farmer.village} · 📞 {farmer.phone}</p>
-              {farmer.fatherName && <p className="text-white/60 text-[10px] mt-0.5 font-medium uppercase tracking-wider">S/O {farmer.fatherName}</p>}
+              {farmer.fatherName && <p className="text-white/60 text-[10px] mt-0.5 font-medium uppercase tracking-wider">{t("S/O")} {farmer.fatherName}</p>}
             </div>
           </div>
 
@@ -295,7 +297,7 @@ export default function FarmerDetail() {
           <div className="flex gap-2 flex-wrap">
             <div className="flex-1 rounded-2xl p-4 bg-white/10 border border-white/20 min-w-[140px]">
               <p className={`text-[10px] font-bold uppercase tracking-widest ${farmer.balance >= 0 ? "text-green-300" : "text-red-300"}`}>
-                {farmer.balance >= 0 ? "↑ Jama Balance" : "↓ Wallet Due"}
+                {farmer.balance >= 0 ? `↑ ${t("Jama Balance")}` : `↓ ${t("Wallet Due")}`}
               </p>
               <p className="text-2xl font-black text-white mt-1">
                 {formatINR(Math.abs(farmer.balance))}
@@ -305,7 +307,7 @@ export default function FarmerDetail() {
             {(farmer.advanceAmount > 0 || farmer.accruedInterest > 0) && (
               <div className="flex-1 rounded-2xl p-4 bg-red-500/20 border border-red-400/30 min-w-[140px]">
                 <p className="text-[10px] text-red-200 font-bold uppercase tracking-widest flex justify-between">
-                  <span>↓ Udhar (Loan)</span>
+                  <span>↓ {t("Udhar (Loan)")}</span>
                   {farmer.chargeInterest && farmer.interestRate > 0 && (
                     <span className="bg-red-500/40 px-1.5 rounded text-[8px]">{farmer.interestRate}%/mo</span>
                   )}
@@ -315,7 +317,7 @@ export default function FarmerDetail() {
                   {farmer.accruedInterest > 0 && (
                     <p className="text-xs font-bold text-red-200 flex flex-col leading-tight">
                       <span>+ {formatINR(farmer.accruedInterest)}</span>
-                      <span className="text-[8px] uppercase tracking-wider">vyaj</span>
+                      <span className="text-[8px] uppercase tracking-wider">{t("vyaj")}</span>
                     </p>
                   )}
                 </div>
@@ -324,9 +326,9 @@ export default function FarmerDetail() {
 
             {farmer.bagsIssued > 0 && (
               <div className="bg-orange-500/20 border border-orange-400/30 rounded-2xl px-4 py-2 text-center flex flex-col justify-center min-w-[90px]">
-                <p className="text-[10px] text-orange-200 font-bold uppercase tracking-widest">Bori Debt</p>
+                <p className="text-[10px] text-orange-200 font-bold uppercase tracking-widest">{t("Bori Debt")}</p>
                 <p className="text-white font-black text-2xl">{farmer.bagsIssued}</p>
-                <p className="text-orange-200/70 text-[9px] uppercase tracking-widest">out</p>
+                <p className="text-orange-200/70 text-[9px] uppercase tracking-widest">{t("out")}</p>
               </div>
             )}
           </div>
@@ -335,9 +337,9 @@ export default function FarmerDetail() {
 
       {/* ── Quick Actions ─────────────────────────────────────────────────── */}
       <div className="flex gap-3 px-4 pt-5 pb-2 overflow-x-auto -mt-6 relative z-10" style={{ scrollbarWidth: "none" }}>
-        <button onClick={() => { setTxnType("payment"); setTxnModal(true); }} className="px-5 py-3 bg-white text-red-600 rounded-2xl font-bold text-xs whitespace-nowrap shadow-[0_4px_15px_rgba(0,0,0,0.05)] border border-gray-100 active:scale-95 transition-transform flex items-center gap-2"><span className="text-lg leading-none">💸</span> Give Payment</button>
-        <button onClick={() => { setTxnType("deposit"); setTxnModal(true); }} className="px-5 py-3 bg-white text-emerald-600 rounded-2xl font-bold text-xs whitespace-nowrap shadow-[0_4px_15px_rgba(0,0,0,0.05)] border border-gray-100 active:scale-95 transition-transform flex items-center gap-2"><span className="text-lg leading-none">📥</span> Receive Cash</button>
-        <button onClick={() => { setTxnType("advance"); setTxnModal(true); }} className="px-5 py-3 bg-white text-blue-600 rounded-2xl font-bold text-xs whitespace-nowrap shadow-[0_4px_15px_rgba(0,0,0,0.05)] border border-gray-100 active:scale-95 transition-transform flex items-center gap-2"><span className="text-lg leading-none">💰</span> Give Advance</button>
+        <button onClick={() => { setTxnType("payment"); setTxnModal(true); }} className="px-5 py-3 bg-white text-red-600 rounded-2xl font-bold text-xs whitespace-nowrap shadow-[0_4px_15px_rgba(0,0,0,0.05)] border border-gray-100 active:scale-95 transition-transform flex items-center gap-2"><span className="text-lg leading-none">💸</span> {t("Give Payment")}</button>
+        <button onClick={() => { setTxnType("deposit"); setTxnModal(true); }} className="px-5 py-3 bg-white text-emerald-600 rounded-2xl font-bold text-xs whitespace-nowrap shadow-[0_4px_15px_rgba(0,0,0,0.05)] border border-gray-100 active:scale-95 transition-transform flex items-center gap-2"><span className="text-lg leading-none">📥</span> {t("Receive Cash")}</button>
+        <button onClick={() => { setTxnType("advance"); setTxnModal(true); }} className="px-5 py-3 bg-white text-blue-600 rounded-2xl font-bold text-xs whitespace-nowrap shadow-[0_4px_15px_rgba(0,0,0,0.05)] border border-gray-100 active:scale-95 transition-transform flex items-center gap-2"><span className="text-lg leading-none">💰</span> {t("Give Advance")}</button>
       </div>
 
       <div className="p-4 space-y-4">
@@ -346,7 +348,7 @@ export default function FarmerDetail() {
         {pending.length > 0 && (
           <section>
             <div className="flex items-center gap-2 mb-3">
-              <h3 className="font-bold text-gray-900">Pending Settlement</h3>
+              <h3 className="font-bold text-gray-900">{t("Pending Settlement")}</h3>
               <span className="w-5 h-5 rounded-full bg-orange-500 text-white text-[10px] font-bold flex items-center justify-center">{pending.length}</span>
             </div>
 
@@ -364,17 +366,17 @@ export default function FarmerDetail() {
                   <button onClick={() => openSettle(entry)} className="w-full flex items-center gap-3 p-4 text-left">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-bold text-gray-900 text-sm capitalize">{entry.cropType} delivery</span>
-                        <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-semibold ${crop.badge}`}>{crop.emoji} {crop.label}</span>
-                        {isMoistureAdjusted && <span className="px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-orange-100 text-orange-600">💧 Moisture adj.</span>}
+                        <span className="font-bold text-gray-900 text-sm capitalize">{t(crop.label)} {t("delivery")}</span>
+                        <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-semibold ${crop.badge}`}>{crop.emoji} {t(crop.label)}</span>
+                        {isMoistureAdjusted && <span className="px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-orange-100 text-orange-600">💧 {t("Moisture adj.")}</span>}
                       </div>
                       <p className="text-xs text-gray-400 mt-0.5">
-                        {entry.totalBags} Boris · {formatWeight(entry.totalWeight)} · ₹{entry.ratePerKg}/kg
+                        {entry.totalBags} {t("bags")} · {formatWeight(entry.totalWeight)} · ₹{entry.ratePerKg}/kg
                       </p>
                     </div>
                     <div className="text-right">
                       <p className="font-bold text-[#2a6c4a]">{formatINR(entry.netAmount ?? entry.totalAmount)}</p>
-                      <p className="text-[10px] text-gray-400">{open ? "▲ close" : "▼ settle"}</p>
+                      <p className="text-[10px] text-gray-400">{open ? `▲ ${t("close")}` : `▼ ${t("settle")}`}</p>
                     </div>
                   </button>
 
@@ -384,20 +386,20 @@ export default function FarmerDetail() {
 
                       {/* Settlement Pay Mode */}
                       <div>
-                        <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">Payment Method</p>
+                        <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">{t("Payment Method")}</p>
                         <div className="flex gap-2 mb-3">
                           <select 
                             value={settleMode} 
                             onChange={e => setSettleMode(e.target.value)}
                             className="flex-1 bg-white border-2 border-gray-100 rounded-xl px-3 py-2 font-bold text-sm focus:border-[#2a6c4a] focus:outline-none"
                           >
-                            <option value="Cash">Cash</option>
-                            <option value="UPI">UPI</option>
-                            <option value="Jama">Jama (Add to Wallet)</option>
+                            <option value="Cash">{t("Cash")}</option>
+                            <option value="UPI">{t("UPI")}</option>
+                            <option value="Jama">{t("Jama (Add to Wallet)")}</option>
                           </select>
                         </div>
                         {settleMode === 'UPI' && (
-                          <input type="text" placeholder="Transaction ID" value={settleUpi} onChange={e => setSettleUpi(e.target.value)} className="w-full mb-3 border-2 border-gray-100 rounded-xl px-3 py-2 text-sm" />
+                          <input type="text" placeholder={t("Transaction ID")} value={settleUpi} onChange={e => setSettleUpi(e.target.value)} className="w-full mb-3 border-2 border-gray-100 rounded-xl px-3 py-2 text-sm" />
                         )}
 
                         <div className="flex gap-2 p-1 bg-gray-100 rounded-xl">
@@ -409,7 +411,7 @@ export default function FarmerDetail() {
                             }} 
                             className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-colors ${settlePaidBy === "seth" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500"}`}
                           >
-                            Owner Paid
+                            {t("Owner Paid")}
                           </button>
                           <button 
                             type="button" 
@@ -419,7 +421,7 @@ export default function FarmerDetail() {
                             }} 
                             className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-colors ${settlePaidBy === "munsi" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500"}`}
                           >
-                            Staff Paid
+                            {t("Staff Paid")}
                           </button>
                         </div>
                       </div>
@@ -427,20 +429,20 @@ export default function FarmerDetail() {
                       {/* ── LAW 1: Trinity Calc + Moisture Override ──────────── */}
                       <div>
                         <div className="flex items-center justify-between mb-2">
-                          <p className="text-xs font-bold text-gray-700">⚖️ Law 1 — Crop Value</p>
+                          <p className="text-xs font-bold text-gray-700">⚖️ {t("Law 1 — Crop Value")}</p>
                           {isMoistureAdjusted && (
-                            <span className="text-[10px] bg-orange-100 text-orange-600 px-2 py-0.5 rounded-full font-semibold">Rate adjusted for moisture</span>
+                            <span className="text-[10px] bg-orange-100 text-orange-600 px-2 py-0.5 rounded-full font-semibold">{t("Rate adjusted for moisture")}</span>
                           )}
                         </div>
 
                         {/* Moisture rate field */}
                         <div className={`rounded-xl border p-3 mb-2 ${isMoistureAdjusted ? "bg-orange-50 border-orange-200" : "bg-white border-gray-100"}`}>
                           <p className="text-[10px] text-gray-400 font-semibold uppercase mb-1.5">
-                            💧 Moisture Adjustment — Lower rate if crop is wet/damaged
+                            💧 {t("Moisture Adjustment — Lower rate if crop is wet/damaged")}
                           </p>
                           <div className="flex items-center gap-3">
                             <div className="flex-1 text-xs text-gray-400">
-                              Original: <span className="font-semibold text-gray-700">₹{entry.ratePerKg}/kg</span>
+                              {t("Original")}: <span className="font-semibold text-gray-700">₹{entry.ratePerKg}/kg</span>
                             </div>
                             <div className="flex items-center gap-1.5 bg-white border border-gray-200 rounded-lg px-2.5 py-1.5">
                               <span className="text-gray-400 text-xs">₹</span>
@@ -463,7 +465,7 @@ export default function FarmerDetail() {
                           </div>
                           {isMoistureAdjusted && (
                             <p className="text-[10px] text-orange-600 mt-1.5">
-                              Rate drop: ₹{(entry.ratePerKg - rate).toFixed(2)}/kg · Loss: {formatINR((entry.ratePerKg - rate) * entry.totalWeight)}
+                              {t("Rate drop")}: ₹{(entry.ratePerKg - rate).toFixed(2)}/kg · {t("Loss")}: {formatINR((entry.ratePerKg - rate) * entry.totalWeight)}
                             </p>
                           )}
                         </div>
@@ -471,35 +473,35 @@ export default function FarmerDetail() {
                         {/* Trinity calculation chain */}
                         <div className="bg-white rounded-xl border border-gray-100 divide-y text-sm">
                           <div className="flex justify-between px-3 py-2">
-                            <span className="text-xs text-gray-500">Total Weight</span>
+                            <span className="text-xs text-gray-500">{t("Total Weight")}</span>
                             <span className="font-semibold">{formatWeight(entry.totalWeight)}</span>
                           </div>
                           {m.karda > 0 && (
                             <div className="flex justify-between px-3 py-2">
-                              <span className="text-xs text-gray-500">Karda Cut</span>
+                              <span className="text-xs text-gray-500">{t("Karda Cut")}</span>
                               <span className="font-semibold text-orange-500">−{formatWeight(m.karda)}</span>
                             </div>
                           )}
                           <div className="flex justify-between px-3 py-2">
-                            <span className="text-xs text-gray-500">Net Weight</span>
+                            <span className="text-xs text-gray-500">{t("Net Weight")}</span>
                             <span className="font-semibold">{formatWeight(Math.max(0, entry.totalWeight - m.karda))}</span>
                           </div>
                           <div className="flex justify-between px-3 py-2">
-                            <span className="text-xs text-gray-500">Rate {isMoistureAdjusted && <span className="text-orange-500">(adj.)</span>}</span>
+                            <span className="text-xs text-gray-500">{t("Rate")} {isMoistureAdjusted && <span className="text-orange-500">({t("adj.")})</span>}</span>
                             <span className="font-semibold">₹{rate}/kg</span>
                           </div>
                           <div className="flex justify-between px-3 py-2">
-                            <span className="text-xs text-gray-500">Gross</span>
+                            <span className="text-xs text-gray-500">{t("Gross")}</span>
                             <span className="font-semibold">+{formatINR(m.gross)}</span>
                           </div>
                           {m.labour > 0 && (
                             <div className="flex justify-between px-3 py-2">
-                              <span className="text-xs text-gray-500">👷 Palledari</span>
+                              <span className="text-xs text-gray-500">👷 {t("Palledari")}</span>
                               <span className="font-semibold text-red-500">−{formatINR(m.labour)}</span>
                             </div>
                           )}
                           <div className="flex justify-between px-3 py-2.5 bg-green-50 rounded-b-xl">
-                            <span className="text-[#2a6c4a] font-bold text-xs">Net Crop Value</span>
+                            <span className="text-[#2a6c4a] font-bold text-xs">{t("Net Crop Value")}</span>
                             <span className="font-bold text-[#2a6c4a]">{formatINR(m.netCrop)}</span>
                           </div>
                         </div>
@@ -507,19 +509,19 @@ export default function FarmerDetail() {
 
                       {/* ── LAW 2: Jama / Udhar Recovery ─────────────────── */}
                       <div>
-                        <p className="text-xs font-bold text-gray-700 mb-2">💸 Law 2 — Recovery Options</p>
+                        <p className="text-xs font-bold text-gray-700 mb-2">💸 {t("Law 2 — Recovery Options")}</p>
                         
                         {/* Debt / Deficit breakdown */}
                         <div className="flex gap-2 mb-3">
                           {outstandingDebt > 0 && (
                             <div className="flex-1 bg-red-50 border border-red-100 rounded-xl p-2.5">
-                              <p className="text-[10px] text-gray-500 uppercase font-bold">Udhar (Loan)</p>
+                              <p className="text-[10px] text-gray-500 uppercase font-bold">{t("Udhar (Loan)")}</p>
                               <p className="font-bold text-red-700">{formatINR(outstandingDebt)}</p>
                             </div>
                           )}
                           {farmer.balance < 0 && (
                             <div className="flex-1 bg-amber-50 border border-amber-100 rounded-xl p-2.5">
-                              <p className="text-[10px] text-gray-500 uppercase font-bold">Jama Deficit</p>
+                              <p className="text-[10px] text-gray-500 uppercase font-bold">{t("Jama Deficit")}</p>
                               <p className="font-bold text-amber-700">{formatINR(Math.abs(farmer.balance))}</p>
                             </div>
                           )}
@@ -536,13 +538,13 @@ export default function FarmerDetail() {
                               className="mt-0.5 accent-amber-600 shrink-0 w-4 h-4 rounded"
                             />
                             <div className="flex-1">
-                              <p className="text-sm font-bold text-gray-900">Partial Jama Recovery</p>
-                              <p className="text-xs text-gray-500">Recover a custom amount towards the Jama balance.</p>
+                              <p className="text-sm font-bold text-gray-900">{t("Partial Jama Recovery")}</p>
+                              <p className="text-xs text-gray-500">{t("Recover a custom amount towards the Jama balance.")}</p>
                               {enableJamaRecovery && (
                                 <div className="mt-2">
                                   <input
                                     type="number"
-                                    placeholder={farmer.balance < 0 ? `Max ${formatINR(Math.abs(farmer.balance))}` : "Amount"}
+                                    placeholder={farmer.balance < 0 ? `${t("Max")} ${formatINR(Math.abs(farmer.balance))}` : t("Amount")}
                                     value={jamaRecoveryAmt}
                                     onChange={e => setJamaRecoveryAmt(e.target.value)}
                                     onClick={e => e.stopPropagation()}
@@ -563,13 +565,13 @@ export default function FarmerDetail() {
                               disabled={outstandingDebt <= 0}
                             />
                             <div className="flex-1 opacity-100">
-                              <p className={`text-sm font-bold ${outstandingDebt <= 0 ? "text-gray-400" : "text-gray-900"}`}>Partial Loan or Udhar Recovery</p>
-                              <p className={`text-xs ${outstandingDebt <= 0 ? "text-gray-400" : "text-gray-500"}`}>Deduct a custom amount from the outstanding loan.</p>
+                              <p className={`text-sm font-bold ${outstandingDebt <= 0 ? "text-gray-400" : "text-gray-900"}`}>{t("Partial Loan or Udhar Recovery")}</p>
+                              <p className={`text-xs ${outstandingDebt <= 0 ? "text-gray-400" : "text-gray-500"}`}>{t("Deduct a custom amount from the outstanding loan.")}</p>
                               {enableUdharRecovery && outstandingDebt > 0 && (
                                 <div className="mt-2">
                                   <input
                                     type="number"
-                                    placeholder={`Max ${formatINR(outstandingDebt)}`}
+                                    placeholder={`${t("Max")} ${formatINR(outstandingDebt)}`}
                                     value={udharRecoveryAmt}
                                     onChange={e => setUdharRecoveryAmt(e.target.value)}
                                     onClick={e => e.stopPropagation()}
@@ -584,8 +586,8 @@ export default function FarmerDetail() {
                           {/* Helper Text for Skip */}
                           {!enableJamaRecovery && !enableUdharRecovery && (
                             <div className="bg-green-50 border border-green-200 rounded-xl p-3 text-center">
-                              <p className="text-xs text-green-700 font-bold">No recovery selected.</p>
-                              <p className="text-[10px] text-green-600">Farmer will receive the full net crop value today.</p>
+                              <p className="text-xs text-green-700 font-bold">{t("No recovery selected.")}</p>
+                              <p className="text-[10px] text-green-600">{t("Farmer will receive the full net crop value today.")}</p>
                             </div>
                           )}
                         </div>
@@ -593,22 +595,22 @@ export default function FarmerDetail() {
 
                       {/* ── LAW 3: Chhoot ───────────────────────────────────── */}
                       <div>
-                        <p className="text-xs font-bold text-gray-700 mb-1">✂️ Law 3 — Chhoot (Round Cash)</p>
+                        <p className="text-xs font-bold text-gray-700 mb-1">✂️ {t("Law 3 — Chhoot (Round Cash)")}</p>
                         <p className="text-[10px] text-gray-400 mb-2">
-                          If you pay round cash (e.g. ₹{Math.ceil(m.finalPayout / 100) * 100} instead of {formatINR(m.finalPayout)}), enter the extra amount here. The difference is logged as Chhoot — ledger stays accurate.
+                          {t("If you pay round cash (e.g.")} ₹{Math.ceil(m.finalPayout / 100) * 100} {t("instead of")} {formatINR(m.finalPayout)}{t("), enter the extra amount here. The difference is logged as Chhoot — ledger stays accurate.")}
                         </p>
                         <div className="bg-white border border-gray-200 rounded-xl px-3 py-2 flex items-center gap-2">
                           <span className="text-gray-400 text-sm">+₹</span>
                           <input
                             type="number"
                             min="0"
-                            placeholder="Extra paid e.g. 20"
+                            placeholder={t("Extra paid e.g. 20")}
                             value={chhootAmt}
                             onChange={e => setChhootAmt(e.target.value)}
                             className="flex-1 bg-transparent text-sm focus:outline-none"
                           />
                           {parseFloat(chhootAmt) > 0 && (
-                            <span className="text-[10px] text-blue-500 font-semibold">Logged as Chhoot</span>
+                            <span className="text-[10px] text-blue-500 font-semibold">{t("Logged as Chhoot")}</span>
                           )}
                         </div>
                       </div>
@@ -618,10 +620,9 @@ export default function FarmerDetail() {
                         <div className="bg-orange-50 border border-orange-200 rounded-xl px-3 py-2.5 flex items-center gap-2">
                           <span className="text-lg">📦</span>
                           <div className="flex-1">
-                            <p className="text-xs font-bold text-orange-700">Law 4 — Bori Cycle</p>
+                            <p className="text-xs font-bold text-orange-700">{t("Law 4 — Bori Cycle")}</p>
                             <p className="text-[10px] text-orange-600">
-                              {entry.totalBags} full bags returned with this delivery.
-                              Pending will drop: {farmer.bagsIssued} → {Math.max(0, farmer.bagsIssued - entry.totalBags)} bags out
+                              {entry.totalBags} {t("full bags returned with this delivery.")} {t("Pending will drop:")} {farmer.bagsIssued} → {Math.max(0, farmer.bagsIssued - entry.totalBags)} {t("bags out")}
                             </p>
                           </div>
                         </div>
@@ -630,14 +631,14 @@ export default function FarmerDetail() {
                       {/* ── Final payout summary ─────────────────────────────── */}
                       <div className={`rounded-xl border p-3.5 ${m.finalPayout >= 0 ? "bg-green-50 border-green-200" : "bg-red-50 border-red-200"}`}>
                         <div className="space-y-1 text-xs mb-2.5">
-                          <div className="flex justify-between"><span className="text-gray-500">Net Crop Value</span><span className="font-semibold">{formatINR(m.netCrop)}</span></div>
-                          {m.jamaRecovery > 0 && <div className="flex justify-between"><span className="text-gray-500">Jama Recovery</span><span className="font-semibold text-amber-500">−{formatINR(m.jamaRecovery)}</span></div>}
-                          {m.udharRecovery > 0 && <div className="flex justify-between"><span className="text-gray-500">Udhar Recovery</span><span className="font-semibold text-red-500">−{formatINR(m.udharRecovery)}</span></div>}
-                          {m.chhoot > 0 && <div className="flex justify-between"><span className="text-gray-500">Chhoot</span><span className="font-semibold text-blue-500">+{formatINR(m.chhoot)}</span></div>}
+                          <div className="flex justify-between"><span className="text-gray-500">{t("Net Crop Value")}</span><span className="font-semibold">{formatINR(m.netCrop)}</span></div>
+                          {m.jamaRecovery > 0 && <div className="flex justify-between"><span className="text-gray-500">{t("Jama Recovery")}</span><span className="font-semibold text-amber-500">−{formatINR(m.jamaRecovery)}</span></div>}
+                          {m.udharRecovery > 0 && <div className="flex justify-between"><span className="text-gray-500">{t("Udhar Recovery")}</span><span className="font-semibold text-red-500">−{formatINR(m.udharRecovery)}</span></div>}
+                          {m.chhoot > 0 && <div className="flex justify-between"><span className="text-gray-500">{t("Chhoot")}</span><span className="font-semibold text-blue-500">+{formatINR(m.chhoot)}</span></div>}
                         </div>
                         <div className={`flex items-center justify-between pt-2 border-t ${m.finalPayout >= 0 ? "border-green-200" : "border-red-200"}`}>
                           <p className={`font-bold text-sm uppercase ${m.finalPayout >= 0 ? "text-[#2a6c4a]" : "text-red-600"}`}>
-                            {m.finalPayout >= 0 ? "Pay Farmer" : "Farmer Owes"}
+                            {m.finalPayout >= 0 ? t("Pay Farmer") : t("Farmer Owes")}
                           </p>
                           <p className={`text-2xl font-bold ${m.finalPayout >= 0 ? "text-[#2a6c4a]" : "text-red-600"}`}>
                             {formatINR(Math.abs(m.finalPayout))}
@@ -650,7 +651,7 @@ export default function FarmerDetail() {
                         onClick={() => handleFinalize(entry)}
                         className="w-full bg-[#2a6c4a] text-white rounded-xl py-3.5 font-bold text-sm disabled:opacity-60 mt-4"
                       >
-                        {saving ? "Processing…" : `✓ Settle ${formatINR(Math.abs(m.finalPayout))}`}
+                        {saving ? t("Processing…") : `✓ ${t("Settle")} ${formatINR(Math.abs(m.finalPayout))}`}
                       </button>
                     </div>
                   )}
@@ -664,9 +665,9 @@ export default function FarmerDetail() {
         {advancePrincipal > 0 && (
           <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="font-bold text-gray-900">Loan & Interest</h3>
+              <h3 className="font-bold text-gray-900">{t("Loan & Interest")}</h3>
               <span className={`text-[10px] font-bold px-2 py-1 rounded-full ${chargeInterest ? "bg-red-100 text-red-600" : "bg-green-100 text-green-600"}`}>
-                {chargeInterest ? `Market · ${interestRate}%/month` : "Friendly · 0% interest"}
+                {chargeInterest ? `${t("Market")} · ${interestRate}%/${t("month")}` : `${t("Friendly")} · 0% ${t("interest")}`}
               </span>
             </div>
 
@@ -694,23 +695,23 @@ export default function FarmerDetail() {
             </div>
             <div className="grid grid-cols-2 gap-2 text-sm">
               <div className="bg-gray-50 rounded-xl p-3">
-                <p className="text-[11px] text-gray-400">Principal</p>
+                <p className="text-[11px] text-gray-400">{t("Principal")}</p>
                 <p className="font-bold text-red-600">{formatINR(advancePrincipal)}</p>
               </div>
               <div className="bg-gray-50 rounded-xl p-3">
-                <p className="text-[11px] text-gray-400">Accrued Interest</p>
+                <p className="text-[11px] text-gray-400">{t("Accrued Interest")}</p>
                 <p className="font-bold text-amber-600">{formatINR(accruedInterest)}</p>
               </div>
               {chargeInterest && (
                 <div className="bg-amber-50 rounded-xl p-3 col-span-2">
-                  <p className="text-[11px] text-gray-400 mb-0.5">Monthly Interest Formula</p>
+                  <p className="text-[11px] text-gray-400 mb-0.5">{t("Monthly Interest Formula")}</p>
                   <p className="text-xs font-mono text-amber-700">
-                    ₹{advancePrincipal.toLocaleString()} × {interestRate}% = <span className="font-bold">+{formatINR(monthlyInterest)}/month</span>
+                    ₹{advancePrincipal.toLocaleString()} × {interestRate}% = <span className="font-bold">+{formatINR(monthlyInterest)}/{t("month")}</span>
                   </p>
                 </div>
               )}
               <div className={`rounded-xl p-3 col-span-2 ${outstandingDebt > 0 ? "bg-red-50" : "bg-green-50"}`}>
-                <p className="text-[11px] text-gray-400">Total Outstanding (principal + interest)</p>
+                <p className="text-[11px] text-gray-400">{t("Total Outstanding (principal + interest)")}</p>
                 <p className={`font-bold text-lg ${outstandingDebt > 0 ? "text-red-700" : "text-green-600"}`}>
                   {formatINR(outstandingDebt)}
                 </p>
@@ -721,16 +722,16 @@ export default function FarmerDetail() {
 
         {/* ── Timeline ────────────────────────────────────────────────────────── */}
         <section>
-          <h3 className="font-bold text-gray-900 mb-3">Transaction History</h3>
+          <h3 className="font-bold text-gray-900 mb-3">{t("Transaction History")}</h3>
           <div className="flex gap-1.5 mb-3 overflow-x-auto">
-            {TABS.map(t => (
-              <button key={t} onClick={() => setTab(t)} className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap ${tab === t ? "bg-[#2a6c4a] text-white" : "bg-gray-100 text-gray-500"}`}>{t}</button>
+            {TABS.map(tabLabel => (
+              <button key={tabLabel} onClick={() => setTab(tabLabel)} className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap ${tab === tabLabel ? "bg-[#2a6c4a] text-white" : "bg-gray-100 text-gray-500"}`}>{t(tabLabel)}</button>
             ))}
           </div>
           <div className="space-y-2">
             {filtered.length === 0 && (
               <p className="text-center text-gray-400 py-12 text-sm bg-white rounded-2xl border border-gray-100 shadow-sm">
-                No transactions yet. Purchases, payments, and settlements will appear here.
+                {t("No transactions yet. Purchases, payments, and settlements will appear here.")}
               </p>
             )}
             
@@ -747,18 +748,19 @@ export default function FarmerDetail() {
                     <div className="flex justify-between items-start p-4">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-bold text-gray-900 text-sm">{e.description}</span>
-                          {crop && <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${crop.badge}`}>{crop.emoji} {crop.label}</span>}
+                          <span className="font-bold text-gray-900 text-sm">{t(e.description)}</span>
+                          {crop && <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${crop.badge}`}>{crop.emoji} {t(crop.label)}</span>}
                         </div>
                         <p className="text-xs text-gray-400 mt-0.5 flex items-center gap-2">
-                          {new Date(e.date).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}
-                          {e.paymentMode && <span className="px-1.5 py-0.5 bg-gray-100 rounded text-[9px] font-bold text-gray-500">{e.paymentMode}</span>}
+                          {new Date(e.date).toLocaleDateString(language === "hi" ? "hi-IN" : "en-IN", { day: "2-digit", month: "short", year: "numeric" })}
+                          {e.paymentMode && <span className="px-1.5 py-0.5 bg-gray-100 rounded text-[9px] font-bold text-gray-500">{t(e.paymentMode)}</span>}
                         </p>
                       </div>
                       <div className="flex items-start gap-3">
                         {isDelivery && farmer?.phone && (
                           <button 
                             onClick={(evt) => { evt.stopPropagation(); sendWhatsAppReceipt(e); }}
+                            aria-label={t("Send WhatsApp receipt")}
                             className="bg-[#25D366] text-white p-1.5 rounded-full shadow-sm active:scale-95 transition-all mt-0.5"
                           >
                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
@@ -769,7 +771,7 @@ export default function FarmerDetail() {
                             <p className={`font-bold text-base ${isOut ? "text-red-600" : "text-[#2a6c4a]"}`}>
                               {isOut ? "−" : "+"}{formatINR(e.amount)}
                             </p>
-                            {(isDelivery || isSettlement) && <p className="text-[10px] text-gray-400">{expanded ? "▲ hide" : "▼ details"}</p>}
+                            {(isDelivery || isSettlement) && <p className="text-[10px] text-gray-400">{expanded ? `▲ ${t("hide")}` : `▼ ${t("details")}`}</p>}
                           </button>
                         )}
                       </div>
@@ -781,7 +783,7 @@ export default function FarmerDetail() {
                         {e.bagWeights && e.bagWeights.length > 0 && (
                           <div>
                             <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">
-                              📦 {e.bagWeights.length} Individual Boris
+                              📦 {e.bagWeights.length} {t("Individual Bags")}
                             </p>
                             <div
                               className="flex gap-2 overflow-x-auto pb-1"
@@ -799,35 +801,35 @@ export default function FarmerDetail() {
                         {/* Calculation breakdown */}
                         <div className="bg-white rounded-xl border border-gray-100 divide-y text-sm">
                           <div className="flex justify-between px-3 py-2">
-                            <span className="text-xs text-gray-500">Total Weight</span>
+                            <span className="text-xs text-gray-500">{t("Total Weight")}</span>
                             <span className="font-semibold">{formatWeight(e.totalWeight)}</span>
                           </div>
                           {(e.kardaWeight ?? 0) > 0 && (
                             <div className="flex justify-between px-3 py-2">
-                              <span className="text-xs text-gray-500">Karda Cut</span>
+                              <span className="text-xs text-gray-500">{t("Karda Cut")}</span>
                               <span className="font-semibold text-orange-500">−{formatWeight(e.kardaWeight)}</span>
                             </div>
                           )}
                           <div className="flex justify-between px-3 py-2">
-                            <span className="text-xs text-gray-500">Net Weight</span>
+                            <span className="text-xs text-gray-500">{t("Net Weight")}</span>
                             <span className="font-semibold">{formatWeight(e.netWeight ?? e.totalWeight)}</span>
                           </div>
                           <div className="flex justify-between px-3 py-2">
-                            <span className="text-xs text-gray-500">Rate</span>
+                            <span className="text-xs text-gray-500">{t("Rate")}</span>
                             <span className="font-semibold">₹{e.ratePerKg}/kg</span>
                           </div>
                           <div className="flex justify-between px-3 py-2">
-                            <span className="text-xs text-gray-500">Gross</span>
+                            <span className="text-xs text-gray-500">{t("Gross")}</span>
                             <span className="font-semibold">+{formatINR((e.netWeight ?? e.totalWeight) * e.ratePerKg)}</span>
                           </div>
                           {(e.palledariAmount ?? 0) > 0 && (
                             <div className="flex justify-between px-3 py-2">
-                              <span className="text-xs text-gray-500">👷 Palledari</span>
+                              <span className="text-xs text-gray-500">👷 {t("Palledari")}</span>
                               <span className="font-semibold text-red-500">−{formatINR(e.palledariAmount)}</span>
                             </div>
                           )}
                           <div className="flex justify-between px-3 py-2.5 bg-green-50 rounded-b-xl">
-                            <span className="text-xs font-bold text-[#2a6c4a]">Net Amount</span>
+                            <span className="text-xs font-bold text-[#2a6c4a]">{t("Net Amount")}</span>
                             <span className="font-bold text-[#2a6c4a]">{formatINR(e.netAmount ?? e.amount)}</span>
                           </div>
                         </div>
@@ -838,35 +840,35 @@ export default function FarmerDetail() {
                       <div className="border-t border-gray-100 bg-gray-50 px-4 py-3 space-y-3">
                         <div className="bg-white rounded-xl border border-gray-100 divide-y text-sm">
                           <div className="flex justify-between px-3 py-2">
-                            <span className="text-xs text-gray-500">Net Crop Value</span>
+                            <span className="text-xs text-gray-500">{t("Net Crop Value")}</span>
                             <span className="font-semibold">{formatINR(e.cropAmount)}</span>
                           </div>
                           {(e.jamaRecovered ?? 0) > 0 && (
                             <div className="flex justify-between px-3 py-2">
-                              <span className="text-xs text-gray-500">Jama Recovery</span>
+                              <span className="text-xs text-gray-500">{t("Jama Recovery")}</span>
                               <span className="font-semibold text-amber-500">−{formatINR(e.jamaRecovered)}</span>
                             </div>
                           )}
                           {(e.advanceRecovered ?? 0) > 0 && (
                             <div className="flex justify-between px-3 py-2">
-                              <span className="text-xs text-gray-500">Udhar Recovery</span>
+                              <span className="text-xs text-gray-500">{t("Udhar Recovery")}</span>
                               <span className="font-semibold text-red-500">−{formatINR(e.advanceRecovered)}</span>
                             </div>
                           )}
                           {(e.interestRecovered ?? 0) > 0 && (
                             <div className="flex justify-between px-3 py-2">
-                              <span className="text-xs text-gray-500">Interest Recovery</span>
+                              <span className="text-xs text-gray-500">{t("Interest Recovery")}</span>
                               <span className="font-semibold text-red-500">−{formatINR(e.interestRecovered)}</span>
                             </div>
                           )}
                           {(e.chhootAmount ?? 0) > 0 && (
                             <div className="flex justify-between px-3 py-2">
-                              <span className="text-xs text-gray-500">Chhoot Paid</span>
+                              <span className="text-xs text-gray-500">{t("Chhoot Paid")}</span>
                               <span className="font-semibold text-blue-500">+{formatINR(e.chhootAmount)}</span>
                             </div>
                           )}
                           <div className="flex justify-between px-3 py-2.5 bg-green-50 rounded-b-xl">
-                            <span className="text-xs font-bold text-[#2a6c4a]">Final Payout</span>
+                            <span className="text-xs font-bold text-[#2a6c4a]">{t("Final Payout")}</span>
                             <span className="font-bold text-[#2a6c4a]">{formatINR(e.amount)}</span>
                           </div>
                         </div>
@@ -877,15 +879,15 @@ export default function FarmerDetail() {
                     {e.runningBalance !== undefined && (
                       <div className="bg-gray-50 border-t border-gray-100 px-4 py-2 flex items-center justify-between gap-2 overflow-x-auto text-[10px] whitespace-nowrap rounded-b-2xl">
                         <div className="flex items-center gap-1.5">
-                          <span className="text-gray-400 uppercase font-bold">Jama:</span>
+                          <span className="text-gray-400 uppercase font-bold">{t("Jama")}:</span>
                           <span className={`font-bold ${e.runningBalance >= 0 ? "text-green-600" : "text-red-600"}`}>{formatINR(e.runningBalance)}</span>
                         </div>
                         <div className="flex items-center gap-1.5">
-                          <span className="text-gray-400 uppercase font-bold">Udhar:</span>
+                          <span className="text-gray-400 uppercase font-bold">{t("Udhar")}:</span>
                           <span className="font-bold text-amber-600">{formatINR(e.runningAdvance)}</span>
                         </div>
                         <div className="flex items-center gap-1.5">
-                          <span className="text-gray-400 uppercase font-bold">Vyaj:</span>
+                          <span className="text-gray-400 uppercase font-bold">{t("Vyaj")}:</span>
                           <span className="font-bold text-red-600">{formatINR(e.runningInterest)}</span>
                         </div>
                       </div>
@@ -900,7 +902,7 @@ export default function FarmerDetail() {
                 onClick={() => setTimelineLimit(p => p + 30)}
                 className="w-full py-3 text-sm font-semibold text-[#2a6c4a] bg-green-50 rounded-xl hover:bg-green-100 mt-4"
               >
-                Load Older Transactions
+                {t("Load Older Transactions")}
               </button>
             )}
           </div>
@@ -913,45 +915,45 @@ export default function FarmerDetail() {
           <div className="bg-white rounded-3xl w-full max-w-sm p-5 space-y-4 shadow-xl">
             <div className="flex justify-between items-center">
               <h3 className="font-bold text-lg text-gray-900">
-                {txnType === "payment" && "Give Payment (To Farmer)"}
-                {txnType === "deposit" && "Receive Cash (From Farmer)"}
-                {txnType === "advance" && "Give Advance (Loan)"}
+                {txnType === "payment" && t("Give Payment (To Farmer)")}
+                {txnType === "deposit" && t("Receive Cash (From Farmer)")}
+                {txnType === "advance" && t("Give Advance (Loan)")}
               </h3>
-              <button onClick={() => setTxnModal(false)} className="text-gray-400 font-bold text-xl hover:text-gray-600">✕</button>
+              <button onClick={() => setTxnModal(false)} aria-label={t("Close transaction form")} className="text-gray-400 font-bold text-xl hover:text-gray-600">✕</button>
             </div>
             
             <div>
-              <label className="text-xs font-bold text-gray-500 mb-1 block">Amount (₹)</label>
+              <label className="text-xs font-bold text-gray-500 mb-1 block">{t("Amount (₹)")}</label>
               <input 
                 type="number" 
                 value={txnAmount} 
                 onChange={e => setTxnAmount(e.target.value)} 
                 className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 font-bold text-xl focus:border-[#2a6c4a] focus:outline-none" 
-                placeholder="e.g. 5000" 
+                placeholder={t("e.g. 5000")}
               />
             </div>
 
             <div className="flex gap-2 p-1 bg-gray-100 rounded-xl mb-3">
-              <button type="button" onClick={() => setTxnPaidBy("seth")} className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-colors ${txnPaidBy === "seth" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500"}`}>Owner</button>
-              <button type="button" onClick={() => setTxnPaidBy("munsi")} className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-colors ${txnPaidBy === "munsi" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500"}`}>Staff</button>
+              <button type="button" onClick={() => setTxnPaidBy("seth")} className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-colors ${txnPaidBy === "seth" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500"}`}>{t("Owner")}</button>
+              <button type="button" onClick={() => setTxnPaidBy("munsi")} className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-colors ${txnPaidBy === "munsi" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500"}`}>{t("Staff")}</button>
             </div>
 
             <div>
-              <label className="text-xs font-bold text-gray-500 mb-1 block">Notes (Optional)</label>
+              <label className="text-xs font-bold text-gray-500 mb-1 block">{t("Notes (Optional)")}</label>
               <input type="text" value={txnNotes} onChange={e => setTxnNotes(e.target.value)} className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none" />
             </div>
 
             <div>
-              <label className="text-xs font-bold text-gray-500 mb-1 block">Payment Mode</label>
+              <label className="text-xs font-bold text-gray-500 mb-1 block">{t("Payment Mode")}</label>
               <select 
                 value={txnMode} 
                 onChange={e => setTxnMode(e.target.value)} 
                 className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 font-bold text-sm focus:border-[#2a6c4a] focus:outline-none bg-white"
               >
-                <option value="Cash">Cash</option>
-                <option value="UPI">UPI</option>
+                <option value="Cash">{t("Cash")}</option>
+                <option value="UPI">{t("UPI")}</option>
                 <option value="PhonePe">PhonePe</option>
-                <option value="GPay">Google Pay</option>
+                <option value="GPay">{t("Google Pay")}</option>
                 <option value="Paytm">Paytm</option>
               </select>
             </div>
@@ -977,7 +979,7 @@ export default function FarmerDetail() {
               }}
               className="w-full py-3.5 bg-[#2a6c4a] text-white rounded-xl font-bold disabled:opacity-50 mt-2"
             >
-              {saving ? "Processing..." : "Confirm Transaction"}
+              {saving ? t("Processing...") : t("Confirm Transaction")}
             </button>
           </div>
         </div>
@@ -988,45 +990,45 @@ export default function FarmerDetail() {
         <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl w-full max-w-sm p-5 shadow-xl max-h-[90vh] flex flex-col">
             <div className="flex justify-between items-center mb-4 shrink-0">
-              <h3 className="font-bold text-lg text-gray-900">Edit Farmer Profile</h3>
-              <button onClick={() => setEditModal(false)} className="text-gray-400 font-bold text-xl hover:text-gray-600">✕</button>
+              <h3 className="font-bold text-lg text-gray-900">{t("Edit Farmer Profile")}</h3>
+              <button onClick={() => setEditModal(false)} aria-label={t("Close edit form")} className="text-gray-400 font-bold text-xl hover:text-gray-600">✕</button>
             </div>
             
             <div className="space-y-4 overflow-y-auto flex-1 pr-1 pb-4" style={{ scrollbarWidth: "thin" }}>
               <div>
-                <label className="text-xs font-bold text-gray-500 mb-1 block">Farmer Name *</label>
+                <label className="text-xs font-bold text-gray-500 mb-1 block">{t("Farmer Name")} *</label>
                 <input type="text" value={editForm.name} onChange={e => setEditForm({...editForm, name: e.target.value})} className="w-full border-2 border-gray-200 rounded-xl px-4 py-2 font-bold text-sm focus:border-[#2a6c4a] focus:outline-none" />
               </div>
               <div>
-                <label className="text-xs font-bold text-gray-500 mb-1 block">Father's Name</label>
+                <label className="text-xs font-bold text-gray-500 mb-1 block">{t("Father's Name")}</label>
                 <input type="text" value={editForm.fatherName} onChange={e => setEditForm({...editForm, fatherName: e.target.value})} className="w-full border-2 border-gray-200 rounded-xl px-4 py-2 text-sm focus:border-[#2a6c4a] focus:outline-none" />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-bold text-gray-500 mb-1 block">Phone</label>
+                  <label className="text-xs font-bold text-gray-500 mb-1 block">{t("Phone")}</label>
                   <input type="text" value={editForm.phone} onChange={e => setEditForm({...editForm, phone: e.target.value})} className="w-full border-2 border-gray-200 rounded-xl px-4 py-2 text-sm focus:border-[#2a6c4a] focus:outline-none" />
                 </div>
                 <div>
-                  <label className="text-xs font-bold text-gray-500 mb-1 block">Village</label>
+                  <label className="text-xs font-bold text-gray-500 mb-1 block">{t("Village")}</label>
                   <input type="text" value={editForm.village} onChange={e => setEditForm({...editForm, village: e.target.value})} className="w-full border-2 border-gray-200 rounded-xl px-4 py-2 text-sm focus:border-[#2a6c4a] focus:outline-none" />
                 </div>
               </div>
               <div>
-                <label className="text-xs font-bold text-gray-500 mb-1 block">Full Address</label>
+                <label className="text-xs font-bold text-gray-500 mb-1 block">{t("Full Address")}</label>
                 <textarea rows={2} value={editForm.fullAddress} onChange={e => setEditForm({...editForm, fullAddress: e.target.value})} className="w-full border-2 border-gray-200 rounded-xl px-4 py-2 text-sm focus:border-[#2a6c4a] focus:outline-none resize-none"></textarea>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-bold text-gray-500 mb-1 block">Guarantor Name</label>
+                  <label className="text-xs font-bold text-gray-500 mb-1 block">{t("Guarantor Name")}</label>
                   <input type="text" value={editForm.guarantorName} onChange={e => setEditForm({...editForm, guarantorName: e.target.value})} className="w-full border-2 border-gray-200 rounded-xl px-4 py-2 text-sm focus:border-[#2a6c4a] focus:outline-none" />
                 </div>
                 <div>
-                  <label className="text-xs font-bold text-gray-500 mb-1 block">Guarantor Phone</label>
+                  <label className="text-xs font-bold text-gray-500 mb-1 block">{t("Guarantor Phone")}</label>
                   <input type="text" value={editForm.guarantorPhone} onChange={e => setEditForm({...editForm, guarantorPhone: e.target.value})} className="w-full border-2 border-gray-200 rounded-xl px-4 py-2 text-sm focus:border-[#2a6c4a] focus:outline-none" />
                 </div>
               </div>
               <div>
-                <label className="text-xs font-bold text-gray-500 mb-1 block">Notes / Observations</label>
+                <label className="text-xs font-bold text-gray-500 mb-1 block">{t("Notes / Observations")}</label>
                 <textarea rows={2} value={editForm.notes} onChange={e => setEditForm({...editForm, notes: e.target.value})} className="w-full border-2 border-gray-200 rounded-xl px-4 py-2 text-sm focus:border-[#2a6c4a] focus:outline-none resize-none"></textarea>
               </div>
             </div>
@@ -1036,7 +1038,7 @@ export default function FarmerDetail() {
               onClick={handleUpdateProfile}
               className="w-full py-3.5 bg-[#2a6c4a] text-white rounded-xl font-bold disabled:opacity-50 mt-4 shrink-0"
             >
-              {saving ? "Saving..." : "Save Profile"}
+              {saving ? t("Saving...") : t("Save Profile")}
             </button>
           </div>
         </div>

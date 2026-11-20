@@ -2,8 +2,10 @@ import React, { useEffect, useState } from "react";
 import AppLayout from "../components/layout/AppLayout.jsx";
 import { api } from "../lib/api.js";
 import { getCropConfig } from "../lib/crop.js";
+import { useTranslation } from "../lib/i18n.jsx";
 
 export default function ViewRates() {
+  const { t, language } = useTranslation();
   const [rates, setRates] = useState([]);
 
   useEffect(() => {
@@ -19,11 +21,11 @@ export default function ViewRates() {
   );
 
   return (
-    <AppLayout title="Aaj Ka Bhaw" showBack={true}>
+    <AppLayout title={t("Aaj Ka Bhaw")} showBack={true}>
       <div className="bg-gradient-to-b from-blue-800 to-blue-700 px-4 pb-12 pt-4 sticky top-[56px] z-20 rounded-b-[2rem] shadow-md">
         <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl p-5 shadow-sm text-center">
-          <p className="text-blue-200 text-xs font-bold uppercase tracking-widest mb-2">Today's Mandi Rates</p>
-          <p className="text-white font-black text-xl">{new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long" })}</p>
+          <p className="text-blue-200 text-xs font-bold uppercase tracking-widest mb-2">{t("Today's Mandi Rates")}</p>
+          <p className="text-white font-black text-xl">{new Date().toLocaleDateString(language === "hi" ? "hi-IN" : "en-IN", { weekday: "long", day: "numeric", month: "long" })}</p>
         </div>
       </div>
 
@@ -40,11 +42,11 @@ export default function ViewRates() {
                   {crop.emoji}
                 </div>
                 <div>
-                  <h3 className="font-bold text-gray-900 text-lg">{crop.label}</h3>
+                  <h3 className="font-bold text-gray-900 text-lg">{t(crop.label)}</h3>
                   <div className={`flex items-center gap-1 text-sm font-semibold ${trendColor[trend]}`}>
                     <span>{trendIcon[trend]}</span>
                     <span>
-                      {trend === "stable" ? "Stable" : `${diff > 0 ? "+" : ""}₹${Math.abs(diff).toFixed(1)}/kg`}
+                      {trend === "stable" ? t("Stable") : `${diff > 0 ? "+" : ""}₹${Math.abs(diff).toFixed(1)}/kg`}
                     </span>
                   </div>
                 </div>
@@ -52,7 +54,7 @@ export default function ViewRates() {
               
               <div className="text-right">
                 <p className="text-3xl font-black text-gray-900">₹{rate.ratePerKg.toFixed(1)}</p>
-                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">per kg</p>
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">{t("per kg")}</p>
               </div>
             </div>
           );

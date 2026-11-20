@@ -3,8 +3,10 @@ import { Link } from "wouter";
 import AppLayout from "../components/layout/AppLayout.jsx";
 import { api } from "../lib/api.js";
 import { Scale, TrendingUp, User, Clock, ChevronRight, Activity } from "lucide-react";
+import { useTranslation } from "../lib/i18n.jsx";
 
 export default function Labour() {
+  const { t } = useTranslation();
   const [entries, setEntries] = useState([]);
 
   useEffect(() => {
@@ -31,12 +33,12 @@ export default function Labour() {
   ];
 
   return (
-    <AppLayout title="Weighing Staff Home">
+    <AppLayout title={t("Weighing Staff Home")}>
       <div className="bg-gradient-to-b from-[#8b5cf6] to-[#7c3aed] px-4 pt-4 pb-12 rounded-b-[2rem] shadow-md relative z-0">
         <div className="flex justify-between items-center mb-4 px-1">
           <div>
-            <p className="text-purple-200 text-xs font-medium uppercase tracking-wider mb-1">Weighing Staff</p>
-            <h2 className="text-white text-xl font-bold">Daily Work</h2>
+            <p className="text-purple-200 text-xs font-medium uppercase tracking-wider mb-1">{t("Weighing Staff")}</p>
+            <h2 className="text-white text-xl font-bold">{t("Daily Work")}</h2>
           </div>
         </div>
       </div>
@@ -46,15 +48,15 @@ export default function Labour() {
         {/* Welcome Card & Pending Stat */}
         <div className="flex gap-3">
           <div className="flex-1 bg-white rounded-3xl p-5 shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-gray-100 flex flex-col justify-center">
-            <h3 className="text-gray-900 font-bold text-lg">Work Dashboard</h3>
-            <p className="text-gray-500 text-xs font-semibold mt-1">Select an action below</p>
+            <h3 className="text-gray-900 font-bold text-lg">{t("Work Dashboard")}</h3>
+            <p className="text-gray-500 text-xs font-semibold mt-1">{t("Select an action below")}</p>
           </div>
           <div className="w-28 bg-white rounded-3xl p-4 shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-gray-100 flex flex-col items-center justify-center text-center">
             <div className="flex items-center justify-center w-8 h-8 rounded-full bg-orange-50 text-orange-500 mb-1">
               <Clock size={16} strokeWidth={3} />
             </div>
             <span className="text-xl font-black text-gray-900 leading-none">{pendingCount}</span>
-            <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mt-1">Pending</span>
+            <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mt-1">{t("Pending")}</span>
           </div>
         </div>
 
@@ -63,7 +65,7 @@ export default function Labour() {
             <Link key={a.label} href={a.path}>
               <div className={`rounded-3xl border border-gray-100 p-5 flex flex-col items-center gap-3 cursor-pointer shadow-[0_8px_30px_rgba(0,0,0,0.04)] active:scale-95 transition-transform min-h-[110px] justify-center ${a.color}`}>
                 <div className="drop-shadow-sm">{a.icon}</div>
-                <span className="font-bold text-sm tracking-wide">{a.label}</span>
+                <span className="font-bold text-sm tracking-wide">{t(a.label)}</span>
               </div>
             </Link>
           ))}
@@ -73,15 +75,15 @@ export default function Labour() {
         <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-gray-100 overflow-hidden">
           <div className="p-5 border-b border-gray-50 flex items-center gap-2">
             <Activity size={18} className="text-purple-500" />
-            <h3 className="text-gray-900 font-bold text-sm uppercase tracking-wider">Recently Weighed</h3>
+            <h3 className="text-gray-900 font-bold text-sm uppercase tracking-wider">{t("Recently Weighed")}</h3>
           </div>
           
           <div className="flex flex-col">
             {recentFarmers.length === 0 ? (
               <div className="p-6 text-center">
-                <p className="text-sm font-semibold text-gray-600">No weighings recorded yet.</p>
+                <p className="text-sm font-semibold text-gray-600">{t("No weighings recorded yet.")}</p>
                 <Link href="/weigh" className="mt-3 inline-flex min-h-11 items-center rounded-xl bg-purple-50 px-4 text-sm font-bold text-purple-700">
-                  Record the first weighing
+                  {t("Record the first weighing")}
                 </Link>
               </div>
             ) : (

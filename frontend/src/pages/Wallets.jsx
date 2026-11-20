@@ -5,6 +5,7 @@ import { decodeToken } from "../lib/jwt.js";
 import { formatINR } from "../lib/format.js";
 import { showToast } from "../lib/toast.js";
 import { HardHat, Truck, ClipboardList, X, Wallet, ArrowDownLeft, ArrowDownToLine, ArrowUpRight, QrCode, ArrowRightLeft, User, UserCircle } from "lucide-react";
+import { useTranslation } from "../lib/i18n.jsx";
 
 const EXPENSE_TYPES = [
   { key: "palledari", label: "Palledari",   icon: HardHat, color: "bg-blue-50 text-blue-700" },
@@ -13,6 +14,7 @@ const EXPENSE_TYPES = [
 ];
 
 export default function Wallets() {
+  const { t, language } = useTranslation();
   const [entries, setEntries] = useState([]);
   const [transfers, setTransfers] = useState([]);
   const [filter, setFilter] = useState("all");
@@ -52,9 +54,9 @@ export default function Wallets() {
       setForm({ type: "palledari", amount: "", notes: "", paidBy: "munsi" });
       setShowForm(false);
       loadData();
-      showToast("Expense added successfully!", "success");
+      showToast(t("Expense added successfully!"), "success");
     } catch (err) {
-      showToast(err.message || "Failed to add expense", "error");
+      showToast(err.message || t("Failed to add expense"), "error");
     }
   }
 
@@ -67,9 +69,9 @@ export default function Wallets() {
       setTransferAmount("");
       setShowTransfer(false);
       loadData();
-      showToast("Transfer completed successfully!", "success");
+      showToast(t("Transfer completed successfully!"), "success");
     } catch (err) {
-      showToast(err.message || "Failed to transfer funds", "error");
+      showToast(err.message || t("Failed to transfer funds"), "error");
     }
   }
 
@@ -78,18 +80,18 @@ export default function Wallets() {
   const groupedEntries = {};
   filteredEntries.forEach(txn => {
     const d = new Date(txn.time);
-    const month = d.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
+    const month = d.toLocaleDateString(language === "hi" ? "hi-IN" : "en-IN", { month: 'long', year: 'numeric' });
     if (!groupedEntries[month]) groupedEntries[month] = [];
     groupedEntries[month].push(txn);
   });
 
   return (
-    <AppLayout title="Wallets" showBack={true}>
+    <AppLayout title={t("Wallets")} showBack={true}>
       <div className="bg-gradient-to-b from-blue-800 to-blue-700 px-4 pb-10 pt-4 rounded-b-[2rem] shadow-md relative z-0 space-y-4">
         <div className="flex justify-between items-center px-1 mb-2">
           <div>
-            <p className="text-blue-200 text-xs font-medium uppercase tracking-wider mb-1">Treasury</p>
-            <h2 className="text-white text-xl font-bold">Wallets</h2>
+            <p className="text-blue-200 text-xs font-medium uppercase tracking-wider mb-1">{t("Treasury")}</p>
+            <h2 className="text-white text-xl font-bold">{t("Wallets")}</h2>
           </div>
         </div>
         
@@ -99,11 +101,11 @@ export default function Wallets() {
             <div className="absolute top-0 right-0 p-4 opacity-10"><UserCircle size={80} /></div>
             <div className="flex justify-between items-start relative z-10">
               <div>
-                <p className="text-white/60 font-bold uppercase tracking-widest text-[10px] mb-1">Owner's Balance</p>
+                <p className="text-white/60 font-bold uppercase tracking-widest text-[10px] mb-1">{t("Owner's Balance")}</p>
                 <p className={`text-3xl font-black ${sethBalance < 0 ? 'text-rose-400' : ''}`}>{formatINR(sethBalance)}</p>
               </div>
               <button onClick={() => { setTransferDirection("seth_to_munsi"); setShowTransfer(true); }} className="bg-[#2a6c4a] hover:bg-[#348259] text-white text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow-lg shadow-green-900/50 transition-colors">
-                <ArrowRightLeft size={14} /> Send to Staff
+                <ArrowRightLeft size={14} /> {t("Send to Staff")}
               </button>
             </div>
           </div>
@@ -114,11 +116,11 @@ export default function Wallets() {
           <div className="absolute top-0 right-0 p-4 opacity-20"><Wallet size={80} /></div>
           <div className="flex justify-between items-start relative z-10">
             <div>
-              <p className="text-teal-50 font-bold uppercase tracking-widest text-[10px] mb-1">Staff Cash Balance</p>
+              <p className="text-teal-50 font-bold uppercase tracking-widest text-[10px] mb-1">{t("Staff Cash Balance")}</p>
               <p className={`text-3xl font-black ${munsiBalance < 0 ? 'text-rose-400' : ''}`}>{formatINR(munsiBalance)}</p>
             </div>
             <button onClick={() => { setTransferDirection("munsi_to_seth"); setShowTransfer(true); }} className="bg-[#2a6c4a] hover:bg-[#348259] text-white text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow-lg shadow-green-900/50 transition-colors">
-              <ArrowRightLeft size={14} /> Send to Owner
+              <ArrowRightLeft size={14} /> {t("Send to Owner")}
             </button>
           </div>
         </div>
@@ -129,28 +131,28 @@ export default function Wallets() {
             <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center text-white group-hover:bg-white/20 transition-all group-active:scale-95">
               <ClipboardList size={20} />
             </div>
-            <span className="text-[10px] font-bold text-white/80">Add Expense</span>
+            <span className="text-[10px] font-bold text-white/80">{t("Add Expense")}</span>
           </button>
           
           <button className="flex flex-col items-center gap-2 group opacity-50">
             <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center text-white transition-all">
               <ArrowDownToLine size={20} />
             </div>
-            <span className="text-[10px] font-bold text-white/80">Add Cash</span>
+            <span className="text-[10px] font-bold text-white/80">{t("Add Cash")}</span>
           </button>
           
           <button className="flex flex-col items-center gap-2 group opacity-50">
             <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center text-white transition-all">
               <QrCode size={20} />
             </div>
-            <span className="text-[10px] font-bold text-white/80">Scan & Pay</span>
+            <span className="text-[10px] font-bold text-white/80">{t("Scan & Pay")}</span>
           </button>
           
           <button className="flex flex-col items-center gap-2 group opacity-50">
             <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center text-white transition-all">
               <ArrowUpRight size={20} />
             </div>
-            <span className="text-[10px] font-bold text-white/80">To Bank</span>
+            <span className="text-[10px] font-bold text-white/80">{t("To Bank")}</span>
           </button>
         </div>
       </div>
@@ -164,37 +166,37 @@ export default function Wallets() {
               <ArrowRightLeft size={16} className="text-gray-400" />
               <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600"><User size={16} /></div>
               <span className="font-bold text-gray-800 ml-1">
-                {transferDirection === "seth_to_munsi" ? "Transfer to Staff" : "Transfer to Owner"}
+                {transferDirection === "seth_to_munsi" ? t("Transfer to Staff") : t("Transfer to Owner")}
               </span>
             </div>
-            <input type="number" required placeholder="Amount (₹)" value={transferAmount} onChange={e => setTransferAmount(e.target.value)} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 mb-3" />
+            <input type="number" required placeholder={t("Amount (₹)")} value={transferAmount} onChange={e => setTransferAmount(e.target.value)} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 mb-3" />
             <div className="flex gap-2">
-              <button type="button" onClick={() => setShowTransfer(false)} className="flex-1 bg-gray-100 text-gray-600 rounded-xl py-2.5 font-semibold text-sm">Cancel</button>
-              <button type="submit" className="flex-1 bg-blue-600 text-white rounded-xl py-2.5 font-semibold text-sm">Transfer</button>
+              <button type="button" onClick={() => setShowTransfer(false)} className="flex-1 bg-gray-100 text-gray-600 rounded-xl py-2.5 font-semibold text-sm">{t("Cancel")}</button>
+              <button type="submit" className="flex-1 bg-blue-600 text-white rounded-xl py-2.5 font-semibold text-sm">{t("Transfer")}</button>
             </div>
           </form>
         )}
 
         {showForm && (
           <form onSubmit={addExpense} className="bg-white rounded-2xl border border-gray-100 p-4 space-y-4 shadow-sm mb-4">
-            <h3 className="font-bold text-gray-800 text-sm">New Expense</h3>
+            <h3 className="font-bold text-gray-800 text-sm">{t("New Expense")}</h3>
             <div className="flex gap-2 p-1 bg-gray-100 rounded-xl mb-3">
-              <button type="button" onClick={() => setForm(p => ({ ...p, paidBy: "seth" }))} className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-colors ${form.paidBy === "seth" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500"}`}>Owner Paid</button>
-              <button type="button" onClick={() => setForm(p => ({ ...p, paidBy: "munsi" }))} className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-colors ${form.paidBy === "munsi" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500"}`}>Staff Paid</button>
+              <button type="button" onClick={() => setForm(p => ({ ...p, paidBy: "seth" }))} className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-colors ${form.paidBy === "seth" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500"}`}>{t("Owner Paid")}</button>
+              <button type="button" onClick={() => setForm(p => ({ ...p, paidBy: "munsi" }))} className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-colors ${form.paidBy === "munsi" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500"}`}>{t("Staff Paid")}</button>
             </div>
             <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-              {EXPENSE_TYPES.map(t => (
-                <button key={t.key} type="button" onClick={() => setForm(p => ({ ...p, type: t.key }))}
-                  className={`flex-none px-4 py-2 rounded-xl flex items-center justify-center gap-1.5 text-xs font-semibold ${form.type === t.key ? "bg-gray-800 text-white" : "bg-gray-50 text-gray-600"}`}>
-                  <t.icon size={14} /> {t.label}
+              {EXPENSE_TYPES.map(expenseType => (
+                <button key={expenseType.key} type="button" onClick={() => setForm(p => ({ ...p, type: expenseType.key }))}
+                  className={`flex-none px-4 py-2 rounded-xl flex items-center justify-center gap-1.5 text-xs font-semibold ${form.type === expenseType.key ? "bg-gray-800 text-white" : "bg-gray-50 text-gray-600"}`}>
+                  <expenseType.icon size={14} /> {t(expenseType.label)}
                 </button>
               ))}
             </div>
-            <input type="number" required placeholder="Amount (₹)" value={form.amount} onChange={e => setForm(p => ({ ...p, amount: e.target.value }))} className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gray-200 font-medium" />
-            <input type="text" placeholder="Notes (optional)" value={form.notes} onChange={e => setForm(p => ({ ...p, notes: e.target.value }))} className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gray-200 font-medium" />
+            <input type="number" required placeholder={t("Amount (₹)")} value={form.amount} onChange={e => setForm(p => ({ ...p, amount: e.target.value }))} className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gray-200 font-medium" />
+            <input type="text" placeholder={t("Notes (optional)")} value={form.notes} onChange={e => setForm(p => ({ ...p, notes: e.target.value }))} className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gray-200 font-medium" />
             <div className="flex gap-2 pt-2">
-              <button type="button" onClick={() => setShowForm(false)} className="flex-1 bg-gray-100 text-gray-600 rounded-xl py-3 font-semibold text-sm">Cancel</button>
-              <button type="submit" className="flex-1 bg-gray-900 text-white rounded-xl py-3 font-semibold text-sm shadow-lg shadow-gray-900/20">Save Expense</button>
+              <button type="button" onClick={() => setShowForm(false)} className="flex-1 bg-gray-100 text-gray-600 rounded-xl py-3 font-semibold text-sm">{t("Cancel")}</button>
+              <button type="submit" className="flex-1 bg-gray-900 text-white rounded-xl py-3 font-semibold text-sm shadow-lg shadow-gray-900/20">{t("Save Expense")}</button>
             </div>
           </form>
         )}
@@ -202,10 +204,10 @@ export default function Wallets() {
         {/* Filter Chips */}
         <div className="flex gap-2 mb-4">
           {[
-            { id: "all", label: "All" },
-            { id: "in", label: "Money In" },
-            { id: "out", label: "Money Out" },
-            { id: "transfers", label: "Transfers" }
+            { id: "all", label: t("All") },
+            { id: "in", label: t("Money In") },
+            { id: "out", label: t("Money Out") },
+            { id: "transfers", label: t("Transfers") }
           ].map(f => (
             <button
               key={f.id}
@@ -224,7 +226,7 @@ export default function Wallets() {
         {filter === "transfers" ? (
           transfers.length === 0 ? (
             <p className="rounded-2xl bg-white px-4 py-8 text-center text-sm text-gray-500">
-              No transfers yet. Transfers between the mandi owner and staff will appear here.
+              {t("No transfers yet. Transfers between the mandi owner and staff will appear here.")}
             </p>
           ) : (
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-4 divide-y divide-gray-100">
@@ -237,11 +239,11 @@ export default function Wallets() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-bold text-gray-900 text-sm">
-                        {isToMunsi ? "Owner → Staff Transfer" : "Staff → Owner Transfer"}
+                        {isToMunsi ? t("Owner → Staff Transfer") : t("Staff → Owner Transfer")}
                       </p>
                       <div className="flex items-center gap-2 mt-1">
                         <span className="text-[10px] text-gray-500 font-semibold">
-                          {new Date(txn.createdAt || txn.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
+                          {new Date(txn.createdAt || txn.date).toLocaleDateString(language === "hi" ? "hi-IN" : "en-IN", { day: '2-digit', month: 'short' })}
                         </span>
                         {txn.notes && (
                           <>
@@ -265,8 +267,10 @@ export default function Wallets() {
           filteredEntries.length === 0 ? (
             <p className="rounded-2xl bg-white px-4 py-8 text-center text-sm text-gray-500">
               {filter === "all"
-                ? "No wallet activity yet. Payments and expenses will appear here."
-                : `No ${filter === "in" ? "incoming" : "outgoing"} activity found. Try another filter.`}
+                ? t("No wallet activity yet. Payments and expenses will appear here.")
+                : filter === "in"
+                  ? t("No incoming activity found. Try another filter.")
+                  : t("No outgoing activity found. Try another filter.")}
             </p>
           ) : (
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-4">
@@ -289,17 +293,17 @@ export default function Wallets() {
                             <p className="font-bold text-gray-900 text-sm truncate">{txn.description}</p>
                             <div className="flex items-center gap-2 mt-1">
                               <span className="text-[10px] text-gray-500 font-semibold">
-                                {new Date(txn.time).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
+                                {new Date(txn.time).toLocaleDateString(language === "hi" ? "hi-IN" : "en-IN", { day: '2-digit', month: 'short' })}
                               </span>
                               <span className="w-1 h-1 rounded-full bg-gray-300"></span>
                               <span className="text-[9px] font-bold uppercase tracking-wider bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded shadow-sm border border-gray-200 truncate max-w-[120px]">
-                                {txn.category?.replace("_", " ")}
+                                {t(txn.category?.replace("_", " ") || "")}
                               </span>
                               {txn.paidBy && (
                                 <>
                                   <span className="w-1 h-1 rounded-full bg-gray-300"></span>
                                   <span className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded shadow-sm ${txn.paidBy === "seth" ? "bg-blue-100 text-blue-700" : "bg-teal-100 text-teal-700"}`}>
-                                    {txn.paidBy} paid
+                                    {t(txn.paidBy === "seth" ? "Owner" : txn.paidBy === "munsi" ? "Staff" : txn.paidBy)} {t("paid")}
                                   </span>
                                 </>
                               )}

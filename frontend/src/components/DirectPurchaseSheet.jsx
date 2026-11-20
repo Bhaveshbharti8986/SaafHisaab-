@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Calculator, Plus, Trash2, CheckCircle2, ChevronDown, Package } from "lucide-react";
 import { api } from "../lib/api.js";
+import { useTranslation } from "../lib/i18n.jsx";
 
 const CROPS = [
   { id: "wheat", name: "Wheat", icon: "🌾", color: "bg-amber-100 text-amber-700 border-amber-200" },
@@ -11,6 +12,7 @@ const CROPS = [
 ];
 
 export default function DirectPurchaseSheet({ isOpen, onClose }) {
+  const { t } = useTranslation();
   const [crop, setCrop] = useState("wheat");
   const [bags, setBags] = useState([]);
   const [currentInput, setCurrentInput] = useState("");
@@ -100,7 +102,7 @@ export default function DirectPurchaseSheet({ isOpen, onClose }) {
       });
       onClose();
     } catch (e) {
-      alert("Failed to submit");
+      alert(t("Failed to submit"));
     } finally {
       setSubmitting(false);
     }
@@ -134,11 +136,11 @@ export default function DirectPurchaseSheet({ isOpen, onClose }) {
                   <Calculator size={24} />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-gray-900">Direct Purchase</h2>
-                  <p className="text-xs text-gray-500 font-medium">Quick Calculator</p>
+                  <h2 className="text-xl font-bold text-gray-900">{t("Direct Purchase")}</h2>
+                  <p className="text-xs font-medium text-gray-500">{t("Quick Calculator")}</p>
                 </div>
               </div>
-              <button onClick={onClose} className="p-2 bg-gray-100 text-gray-500 rounded-full active:scale-95">
+              <button onClick={onClose} aria-label={t("Close")} className="p-2 bg-gray-100 text-gray-500 rounded-full active:scale-95">
                 <X size={20} />
               </button>
             </div>
@@ -148,7 +150,7 @@ export default function DirectPurchaseSheet({ isOpen, onClose }) {
               
               {/* Crop Selection */}
               <div className="mb-5">
-                <p className="text-sm font-bold text-gray-700 mb-2 px-1">Select Crop</p>
+                <p className="mb-2 px-1 text-sm font-bold text-gray-700">{t("Select Crop")}</p>
                 <div className="grid grid-cols-4 gap-2">
                   {CROPS.map(c => (
                     <button
@@ -157,7 +159,7 @@ export default function DirectPurchaseSheet({ isOpen, onClose }) {
                       className={`flex flex-col items-center p-3 rounded-2xl border-2 transition-all ${crop === c.id ? c.color : 'bg-white border-gray-100 text-gray-400 grayscale opacity-70'}`}
                     >
                       <span className="text-2xl mb-1">{c.icon}</span>
-                      <span className="text-[10px] font-bold uppercase tracking-wider">{c.name}</span>
+                      <span className="text-[10px] font-bold uppercase tracking-wider">{t(c.name)}</span>
                     </button>
                   ))}
                 </div>
@@ -166,7 +168,7 @@ export default function DirectPurchaseSheet({ isOpen, onClose }) {
               {/* Rate Info Card */}
               <div className="bg-gradient-to-r from-gray-900 to-gray-800 rounded-3xl p-4 text-white mb-5 shadow-lg flex flex-col gap-3">
                 <div className="flex justify-between items-center border-b border-gray-700 pb-3">
-                  <p className="text-gray-400 text-xs font-bold uppercase tracking-wider">Rate (₹/qtl)</p>
+                  <p className="text-xs font-bold uppercase tracking-wider text-gray-400">{t("Rate (₹/qtl)")}</p>
                   <div className="flex items-center gap-1 bg-white/10 w-fit px-3 py-1.5 rounded-xl border border-white/20 focus-within:border-white focus-within:bg-white/20 transition-all">
                     <span className="text-xl font-bold text-gray-300">₹</span>
                     <input 
@@ -179,7 +181,7 @@ export default function DirectPurchaseSheet({ isOpen, onClose }) {
                 </div>
                 
                 <div className="flex justify-between items-center">
-                  <p className="text-gray-400 text-xs font-bold uppercase tracking-wider">Bag Deduction (kg)</p>
+                  <p className="text-xs font-bold uppercase tracking-wider text-gray-400">{t("Bag Deduction (kg)")}</p>
                   <div className="flex items-center gap-1 bg-white/10 w-fit px-3 py-1.5 rounded-xl border border-white/20 focus-within:border-orange-400 focus-within:bg-white/20 transition-all">
                     <input 
                       type="number" 
@@ -192,7 +194,7 @@ export default function DirectPurchaseSheet({ isOpen, onClose }) {
                  </div>
 
                 <div className="flex justify-between items-center border-t border-gray-700 pt-3">
-                  <p className="text-gray-400 text-xs font-bold uppercase tracking-wider">Palledari (₹/bag)</p>
+                  <p className="text-xs font-bold uppercase tracking-wider text-gray-400">{t("Palledari (₹/bag)")}</p>
                   <div className="flex items-center gap-1 bg-white/10 w-fit px-3 py-1.5 rounded-xl border border-white/20 focus-within:border-rose-400 focus-within:bg-white/20 transition-all">
                     <span className="text-lg font-bold text-rose-400">₹</span>
                     <input 
@@ -209,20 +211,20 @@ export default function DirectPurchaseSheet({ isOpen, onClose }) {
               <div className="bg-white rounded-3xl p-5 border border-gray-100 shadow-sm mb-5">
                 <div className="grid grid-cols-2 gap-y-4 gap-x-6">
                   <div>
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Total Bags</p>
-                    <p className="text-xl font-black text-gray-800">{totalBags} <span className="text-sm text-gray-400 font-medium">bags</span></p>
+                    <p className="mb-1 text-[10px] font-bold uppercase tracking-widest text-gray-400">{t("Total Bags")}</p>
+                    <p className="text-xl font-black text-gray-800">{totalBags} <span className="text-sm font-medium text-gray-400">{t("bags")}</span></p>
                   </div>
                   <div>
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Gross Wt.</p>
+                    <p className="mb-1 text-[10px] font-bold uppercase tracking-widest text-gray-400">{t("Gross Wt.")}</p>
                     <p className="text-xl font-black text-gray-800">{grossWeight.toFixed(1)} <span className="text-sm text-gray-400 font-medium">kg</span></p>
                   </div>
                   <div className="col-span-2 border-t border-dashed border-gray-200 pt-3 flex justify-between items-end">
                     <div>
-                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Net Weight <span className="text-orange-500 lowercase">(-{totalDeduction}kg)</span></p>
+                      <p className="mb-1 text-[10px] font-bold uppercase tracking-widest text-gray-400">{t("Net Weight")} <span className="lowercase text-orange-500">(-{totalDeduction}kg)</span></p>
                       <p className="text-3xl font-black text-green-600">{netWeight.toFixed(1)} <span className="text-lg text-green-600/60 font-medium">kg</span></p>
                     </div>
                     <div className="text-right">
-                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Net Amount</p>
+                      <p className="mb-1 text-[10px] font-bold uppercase tracking-widest text-gray-400">{t("Net Amount")}</p>
                       <p className="text-xl font-bold text-gray-900">₹{grossAmount.toFixed(0)}</p>
                     </div>
                   </div>
@@ -231,8 +233,8 @@ export default function DirectPurchaseSheet({ isOpen, onClose }) {
                 {/* Final Payable */}
                 <div className="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center bg-gray-50 -mx-5 -mb-5 p-5 rounded-b-3xl">
                   <div>
-                    <p className="text-xs font-bold text-gray-500 mb-1">Final Payable</p>
-                    <p className="text-[10px] text-rose-500 font-medium">(- ₹{totalPalledari} palledari)</p>
+                    <p className="mb-1 text-xs font-bold text-gray-500">{t("Final Payable")}</p>
+                    <p className="text-[10px] font-medium text-rose-500">(- ₹{totalPalledari} {t("palledari")})</p>
                   </div>
                   <p className="text-3xl font-black text-blue-600">₹{finalPayable.toFixed(0)}</p>
                 </div>
@@ -242,7 +244,7 @@ export default function DirectPurchaseSheet({ isOpen, onClose }) {
               <div className="flex gap-4">
                 {/* Bag List */}
                 <div className="w-[100px] bg-white rounded-3xl border border-gray-100 overflow-hidden flex flex-col h-[300px]">
-                  <div className="bg-gray-100 p-2 text-center text-[10px] font-bold uppercase tracking-widest text-gray-500 shrink-0">Bags</div>
+                  <div className="shrink-0 bg-gray-100 p-2 text-center text-[10px] font-bold uppercase tracking-widest text-gray-500">{t("Bags")}</div>
                   <div className="overflow-y-auto flex-1 p-2 space-y-2">
                     {bags.map((b, i) => (
                       <div key={i} className="flex justify-between items-center bg-blue-50 text-blue-800 px-2 py-1.5 rounded-lg text-sm font-bold group">
@@ -253,7 +255,7 @@ export default function DirectPurchaseSheet({ isOpen, onClose }) {
                       </div>
                     ))}
                     {bags.length === 0 && (
-                      <p className="text-xs text-center text-gray-400 mt-4 italic">Empty</p>
+                      <p className="mt-4 text-center text-xs italic text-gray-400">{t("Empty")}</p>
                     )}
                   </div>
                 </div>
@@ -262,7 +264,7 @@ export default function DirectPurchaseSheet({ isOpen, onClose }) {
                 <div className="flex-1 grid grid-cols-3 gap-2 h-[300px]">
                   {/* Display */}
                   <div className="col-span-3 bg-white rounded-2xl border border-gray-200 p-3 flex justify-between items-center shadow-inner">
-                    <span className="text-gray-400 font-medium text-sm flex items-center gap-1"><Package size={16}/> New Bag</span>
+                    <span className="flex items-center gap-1 text-sm font-medium text-gray-400"><Package size={16}/> {t("New Bag")}</span>
                     <span className="text-3xl font-black text-gray-800">{currentInput || "0"}</span>
                   </div>
                   
@@ -282,7 +284,7 @@ export default function DirectPurchaseSheet({ isOpen, onClose }) {
                     ⌫
                   </button>
                   <button onClick={() => handleNumpad('ADD')} className="col-span-2 rounded-2xl bg-blue-600 text-white font-bold text-lg shadow-md shadow-blue-200 active:scale-95 flex justify-center items-center gap-2">
-                    <Plus size={20} /> Add Bag
+                    <Plus size={20} /> {t("Add Bag")}
                   </button>
                 </div>
               </div>
@@ -295,9 +297,9 @@ export default function DirectPurchaseSheet({ isOpen, onClose }) {
                 disabled={submitting || totalBags === 0}
                 className="w-full bg-green-600 text-white py-4 rounded-3xl font-bold text-lg flex items-center justify-center gap-2 shadow-xl shadow-green-200 active:scale-95 transition-transform disabled:opacity-50 disabled:active:scale-100"
               >
-                {submitting ? "Processing..." : (
+                {submitting ? t("Processing...") : (
                   <>
-                    <CheckCircle2 size={24} /> Confirm Purchase
+                    <CheckCircle2 size={24} /> {t("Confirm Purchase")}
                   </>
                 )}
               </button>

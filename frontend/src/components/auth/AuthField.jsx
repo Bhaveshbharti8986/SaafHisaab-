@@ -1,4 +1,5 @@
 import React, { useId } from "react";
+import { useTranslation } from "../../lib/i18n.jsx";
 
 const accents = {
   seth: {
@@ -25,6 +26,7 @@ export default function AuthField({
   id,
   ...inputProps
 }) {
+  const { t } = useTranslation();
   const accentClasses = accents[accent] || accents.seth;
   const generatedId = useId();
   const inputId = id || generatedId;
@@ -36,7 +38,7 @@ export default function AuthField({
           htmlFor={inputId}
           className={`${compact ? "mb-0.5 text-xs leading-[14px]" : "mb-1 text-[13px] leading-[15px]"} block font-bold text-slate-700`}
         >
-          {label}
+          {t(label)}
         </label>
       )}
       <div
@@ -53,6 +55,8 @@ export default function AuthField({
         <input
           id={inputId}
           {...inputProps}
+          placeholder={typeof inputProps.placeholder === "string" ? t(inputProps.placeholder) : inputProps.placeholder}
+          aria-label={typeof inputProps["aria-label"] === "string" ? t(inputProps["aria-label"]) : inputProps["aria-label"]}
           className="h-full min-w-0 flex-1 bg-transparent text-sm font-semibold text-slate-900 outline-none placeholder:text-slate-500"
         />
         {right}

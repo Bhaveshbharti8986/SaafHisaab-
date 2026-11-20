@@ -1,7 +1,9 @@
 import React from "react";
 import { Calendar, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
+import { useTranslation } from "../lib/i18n.jsx";
 
 export default function DateSelector({ date, setDate }) {
+  const { language, t } = useTranslation();
   const safeDate = date || new Date().toISOString().split("T")[0];
   const selectedDateObj = new Date(safeDate);
   
@@ -22,6 +24,7 @@ export default function DateSelector({ date, setDate }) {
     <div className="flex items-center justify-between bg-white/5 border border-white/10 rounded-2xl mb-4 p-1 shadow-sm">
       <button 
         onClick={() => changeDay(-1)} 
+        aria-label={t("Previous day")}
         className="p-3 text-white/50 hover:text-white hover:bg-white/10 rounded-xl transition-all active:scale-95"
       >
         <ChevronLeft size={20} />
@@ -40,7 +43,7 @@ export default function DateSelector({ date, setDate }) {
         <div className="flex items-center gap-2 text-white group-hover:text-green-400 transition-colors">
           <Calendar size={16} className="opacity-70" />
           <span className="font-bold text-sm tracking-wide">
-            {isToday ? "Today" : selectedDateObj.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+            {isToday ? t("Today") : selectedDateObj.toLocaleDateString(language === "hi" ? "hi-IN" : "en-IN", { day: "2-digit", month: "short", year: "numeric" })}
           </span>
           <ChevronDown size={16} className="opacity-50 group-hover:opacity-100" />
         </div>
@@ -48,6 +51,7 @@ export default function DateSelector({ date, setDate }) {
 
       <button 
         onClick={() => changeDay(1)} 
+        aria-label={t("Next day")}
         className="p-3 text-white/50 hover:text-white hover:bg-white/10 rounded-xl transition-all active:scale-95"
       >
         <ChevronRight size={20} />

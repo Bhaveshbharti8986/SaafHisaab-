@@ -4,8 +4,10 @@ import { Search, User } from "lucide-react";
 import { api } from "../lib/api.js";
 import { formatINR } from "../lib/format.js";
 import { getAvatarColor, getInitials } from "../lib/crop.js";
+import { useTranslation } from "../lib/i18n.jsx";
 
 export default function Farmers() {
+  const { t } = useTranslation();
   const [farmers, setFarmers] = useState([]);
   const [search, setSearch]   = useState("");
   const [loading, setLoading] = useState(true);
@@ -57,12 +59,13 @@ export default function Farmers() {
   }
 
   return (
-    <AppLayout title="Farmer Khata" showBack={true}>
+    <AppLayout title={t("Farmer Khata")} showBack={true}>
       <div className="bg-gradient-to-b from-blue-800 to-blue-700 px-4 pb-8 pt-4 sticky top-[56px] z-20 rounded-b-[2rem] shadow-md">
         <div className="relative">
           <input
             type="text"
-            placeholder="Search by name or phone..."
+            placeholder={t("Search by name or phone...")}
+            aria-label={t("Search by name or phone")}
             value={search}
             onChange={e => setSearch(e.target.value)}
             className="w-full bg-white text-gray-900 placeholder-gray-400 rounded-2xl px-12 py-3.5 text-sm font-semibold shadow-inner focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all"
@@ -76,7 +79,7 @@ export default function Farmers() {
           onClick={() => setShowAdd(v => !v)}
           className="w-full bg-blue-600 text-white rounded-2xl py-3.5 font-bold text-sm shadow-[0_4px_15px_rgba(37,99,235,0.2)] active:scale-95 transition-transform"
         >
-          + Add New Farmer
+          + {t("Add New Farmer")}
         </button>
 
         {showAdd && (
@@ -87,13 +90,13 @@ export default function Farmers() {
                 required={f === "name"}
                 value={form[f]}
                 onChange={e => setForm(p => ({ ...p, [f]: e.target.value }))}
-                placeholder={f.charAt(0).toUpperCase() + f.slice(1)}
+                placeholder={t(f.charAt(0).toUpperCase() + f.slice(1))}
                 className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-white transition-all"
               />
             ))}
             <div className="flex gap-3">
-              <button type="button" onClick={() => setShowAdd(false)} className="flex-1 bg-gray-100 text-gray-600 rounded-2xl py-3 font-bold text-sm active:bg-gray-200 transition-colors">Cancel</button>
-              <button type="submit" className="flex-1 bg-blue-600 text-white rounded-2xl py-3 font-bold text-sm shadow-md active:bg-blue-700 transition-colors">Save</button>
+              <button type="button" onClick={() => setShowAdd(false)} className="flex-1 bg-gray-100 text-gray-600 rounded-2xl py-3 font-bold text-sm active:bg-gray-200 transition-colors">{t("Cancel")}</button>
+              <button type="submit" className="flex-1 bg-blue-600 text-white rounded-2xl py-3 font-bold text-sm shadow-md active:bg-blue-700 transition-colors">{t("Save")}</button>
             </div>
           </form>
         )}
@@ -105,19 +108,19 @@ export default function Farmers() {
               ? (
                 <div className="rounded-3xl border border-gray-100 bg-white px-5 py-8 text-center shadow-sm">
                   <p className="font-bold text-gray-800">
-                    {debouncedSearch ? `No farmers match "${debouncedSearch}".` : "No farmers added yet."}
+                    {debouncedSearch ? <>{t("No farmers match")} "{debouncedSearch}".</> : t("No farmers added yet.")}
                   </p>
                   <p className="mt-1 text-sm text-gray-500">
                     {debouncedSearch
-                      ? "Try a different name or phone number."
-                      : "Add your first farmer to keep purchase and payment records."}
+                      ? t("Try a different name or phone number.")
+                      : t("Add your first farmer to keep purchase and payment records.")}
                   </p>
                   <button
                     type="button"
                     onClick={() => debouncedSearch ? setSearch("") : setShowAdd(true)}
                     className="mt-4 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white"
                   >
-                    {debouncedSearch ? "Clear search" : "Add your first farmer"}
+                    {debouncedSearch ? t("Clear search") : t("Add your first farmer")}
                   </button>
                 </div>
               )
@@ -137,12 +140,12 @@ export default function Farmers() {
                         <div className="flex-1 min-w-0">
                           <p className="font-bold text-gray-900 text-sm">{f.name}</p>
                           <p className="text-[11px] font-medium text-gray-500">{f.village} • {f.phone}</p>
-                          {f.bagsIssued > 0 && <p className="text-[10px] text-orange-500 font-bold uppercase tracking-wider mt-0.5">{f.bagsIssued} bags out</p>}
+                          {f.bagsIssued > 0 && <p className="text-[10px] text-orange-500 font-bold uppercase tracking-wider mt-0.5">                          {f.bagsIssued} {t("bags out")}</p>}
                         </div>
                       </div>
                       <div className="text-right">
                         <p className={`font-black text-base ${f.balance >= 0 ? "text-emerald-600" : "text-red-500"}`}>{formatINR(Math.abs(f.balance))}</p>
-                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{f.balance >= 0 ? "Due" : "Owes"}</p>
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{f.balance >= 0 ? t("Due") : t("Owes")}</p>
                       </div>
                     </div>
                   );
@@ -155,7 +158,7 @@ export default function Farmers() {
             onClick={() => setPage(p => p + 1)}
             className="w-full py-4 text-sm font-bold text-blue-600 bg-blue-50 rounded-2xl active:bg-blue-100 transition-colors"
           >
-            Load More Farmers
+            {t("Load More Farmers")}
           </button>
         )}
       </div>

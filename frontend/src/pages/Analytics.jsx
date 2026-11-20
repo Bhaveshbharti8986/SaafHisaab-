@@ -4,6 +4,7 @@ import { api } from "../lib/api.js";
 import { formatINR, formatWeight } from "../lib/format.js";
 import { TrendingUp, TrendingDown, IndianRupee, Scale, PackageOpen, Filter } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend, AreaChart, Area, PieChart, Pie, Cell } from "recharts";
+import { useTranslation } from "../lib/i18n.jsx";
 
 const CROP_COLORS = { wheat: "#FFB800", maize: "#F9E076", rice: "#00B4D8", soybean: "#9D4EDD" };
 const EXPENSE_COLORS = { palledari: "#FF4D6D", bhada: "#FF9E00", misc: "#7B2CBF", salary: "#00F5D4" };
@@ -17,6 +18,7 @@ const TIMEFRAMES = [
 ];
 
 export default function Analytics() {
+  const { language, t } = useTranslation();
   const [data, setData] = useState(null);
   const [plData, setPlData] = useState(null);
   const [globalTimeframe, setGlobalTimeframe] = useState(TIMEFRAMES[4]);
@@ -60,7 +62,7 @@ export default function Analytics() {
   }, [globalTimeframe]);
 
   if (loading || !data || !plData) return (
-    <AppLayout title="Analytics & P&L">
+    <AppLayout title={t("Analytics & P&L")}>
       <div className="p-4 space-y-3">{[1,2,3].map(i => <div key={i} className="h-32 bg-gray-100 rounded-2xl animate-pulse" />)}</div>
     </AppLayout>
   );
@@ -68,24 +70,24 @@ export default function Analytics() {
   const isProfit = data.netProfit >= 0;
 
   const plRows = [
-    { label: "Gross Sales Margin",  value: plData.grossMargin,    color: "text-[#2a6c4a]", sign: "+" },
-    { label: "Interest Earned",     value: plData.interestEarned, color: "text-blue-600",  sign: "+" },
-    { label: "Total Expenses",      value: plData.totalExpenses,  color: "text-red-500",   sign: "−" },
-    { label: "Shrinkage Loss",      value: plData.shrinkageLoss,  color: "text-orange-500",sign: "−" },
+    { label: t("Gross Sales Margin"),  value: plData.grossMargin,    color: "text-[#2a6c4a]", sign: "+" },
+    { label: t("Interest Earned"),     value: plData.interestEarned, color: "text-blue-600",  sign: "+" },
+    { label: t("Total Expenses"),      value: plData.totalExpenses,  color: "text-red-500",   sign: "−" },
+    { label: t("Shrinkage Loss"),      value: plData.shrinkageLoss,  color: "text-orange-500",sign: "−" },
   ];
 
   const chartData = (data.dailyTrend || []).map(d => ({
     ...d,
-    label: new Date(d.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })
+    label: new Date(d.date).toLocaleDateString(language === "hi" ? "hi-IN" : "en-GB", { day: "2-digit", month: "short" })
   }));
 
   return (
-    <AppLayout title="Analytics & P&L" showBack={true}>
+    <AppLayout title={t("Analytics & P&L")} showBack={true}>
       <div className="bg-gradient-to-b from-blue-800 to-blue-700 px-4 pb-12 pt-4 rounded-b-[2rem] shadow-md relative z-0">
         <div className="flex justify-between items-center mb-6 px-1">
           <div>
-            <p className="text-blue-200 text-xs font-medium uppercase tracking-wider mb-1">Business</p>
-            <h2 className="text-white text-xl font-bold">Analytics & P&L</h2>
+            <p className="mb-1 text-xs font-medium uppercase tracking-wider text-blue-200">{t("Business")}</p>
+            <h2 className="text-xl font-bold text-white">{t("Analytics & P&L")}</h2>
           </div>
           <div className="flex bg-white/10 p-0.5 rounded-full border border-white/20">
             {TIMEFRAMES.map(tf => (
@@ -93,7 +95,7 @@ export default function Analytics() {
             ))}
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           {[
             { label: "Net Profit",    value: formatINR(data.netProfit),          color: data.netProfit >= 0 ? "text-green-300" : "text-red-300" },
             { label: "Total Revenue", value: formatINR(data.totalSales),         color: "text-white" },
@@ -101,18 +103,18 @@ export default function Analytics() {
             { label: "Active Farmers",value: data.activeFarmers,                 color: "text-white" },
           ].map(s => (
             <div key={s.label} className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 shadow-sm">
-              <p className="text-white/80 text-[10px] font-bold uppercase tracking-widest">{s.label}</p>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-white/80">{t(s.label)}</p>
               <p className={`font-black text-xl mt-1 ${s.color}`}>{s.value}</p>
             </div>
           ))}
         </div>
       </div>
 
-      <div className="p-4 space-y-5 -mt-6 relative z-10">
+      <div className="relative z-10 -mt-6 grid grid-cols-1 gap-5 p-4 lg:grid-cols-2">
              {/* Modern Profit & Loss Graph */}
         <div className="bg-white rounded-3xl border border-gray-100 shadow-[0_4px_15px_rgba(0,0,0,0.03)] p-5">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="font-bold text-gray-900">Profit & Loss Trend</h3>
+            <h3 className="font-bold text-gray-900">{t("Profit & Loss Trend")}</h3>
           </div>
           <div className="h-56 w-full">
             <ResponsiveContainer width="100%" height="100%">
@@ -127,7 +129,7 @@ export default function Analytics() {
                 <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#9ca3af' }} />
                 <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#9ca3af' }} tickFormatter={(val) => `₹${val/1000}k`} />
                 <Tooltip cursor={{ fill: 'transparent' }} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} formatter={(val) => formatINR(val)} />
-                <Area type="monotone" dataKey="profit" name="Net Profit" stroke="#00E676" strokeWidth={3} fill="url(#colorProfit)" />
+                <Area type="monotone" dataKey="profit" name={t("Net Profit")} stroke="#00E676" strokeWidth={3} fill="url(#colorProfit)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -136,7 +138,7 @@ export default function Analytics() {
         {/* Gross Margin Trend */}
         <div className="bg-white rounded-3xl border border-gray-100 shadow-[0_4px_15px_rgba(0,0,0,0.03)] p-5">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="font-bold text-gray-900">Gross Margin Trend</h3>
+            <h3 className="font-bold text-gray-900">{t("Gross Margin Trend")}</h3>
           </div>
           <div className="h-56 w-full">
             <ResponsiveContainer width="100%" height="100%">
@@ -151,7 +153,7 @@ export default function Analytics() {
                 <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#9ca3af' }} />
                 <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#9ca3af' }} tickFormatter={(val) => `₹${val/1000}k`} />
                 <Tooltip cursor={{ fill: 'transparent' }} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} formatter={(val) => formatINR(val)} />
-                <Area type="monotone" dataKey="grossMargin" name="Gross Margin" stroke="#0EA5E9" strokeWidth={3} fill="url(#colorMargin)" />
+                <Area type="monotone" dataKey="grossMargin" name={t("Gross Margin")} stroke="#0EA5E9" strokeWidth={3} fill="url(#colorMargin)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -160,7 +162,7 @@ export default function Analytics() {
         {/* Volume Traded (Continuous Area) */}
         <div className="bg-white rounded-3xl border border-gray-100 shadow-[0_4px_15px_rgba(0,0,0,0.03)] p-5">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="font-bold text-gray-900">Volume Traded</h3>
+            <h3 className="font-bold text-gray-900">{t("Volume Traded")}</h3>
           </div>
           <div className="h-56 w-full">
             <ResponsiveContainer width="100%" height="100%">
@@ -175,7 +177,7 @@ export default function Analytics() {
                 <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#9ca3af' }} />
                 <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#9ca3af' }} tickFormatter={(val) => `${val >= 1000 ? (val/1000).toFixed(1) + 't' : val + 'kg'}`} />
                 <Tooltip cursor={{ fill: 'transparent' }} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} formatter={(val) => formatWeight(val)} />
-                <Area type="monotone" dataKey="volume" name="Volume Bought" stroke="#8b5cf6" strokeWidth={3} fillOpacity={1} fill="url(#colorVolume)" />
+                <Area type="monotone" dataKey="volume" name={t("Volume Bought")} stroke="#8b5cf6" strokeWidth={3} fillOpacity={1} fill="url(#colorVolume)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -184,7 +186,7 @@ export default function Analytics() {
         {/* Top Crop by Revenue (Donut) */}
         <div className="bg-white rounded-3xl border border-gray-100 shadow-[0_4px_15px_rgba(0,0,0,0.03)] p-5">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="font-bold text-gray-900">Crop Revenue Breakdown</h3>
+            <h3 className="font-bold text-gray-900">{t("Crop Revenue Breakdown")}</h3>
             <div className="flex bg-gray-100 p-0.5 rounded-lg">
               {['1D', '1W', '1M', '1Y', 'ALL'].map(i => (
                 <button key={i} onClick={() => setCropPieTime(i)} className={`px-2.5 py-1 text-[10px] font-bold rounded-md transition-colors ${cropPieTime === i ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}>{i}</button>
@@ -198,10 +200,10 @@ export default function Analytics() {
                 <PieChart>
                   <Pie
                     data={[
-                      { name: "Wheat", value: filterTrendByTime(data.dailyTrend, cropPieTime).reduce((sum, d) => sum + (d.wheat || 0), 0), color: CROP_COLORS.wheat },
-                      { name: "Maize", value: filterTrendByTime(data.dailyTrend, cropPieTime).reduce((sum, d) => sum + (d.maize || 0), 0), color: CROP_COLORS.maize },
-                      { name: "Rice", value: filterTrendByTime(data.dailyTrend, cropPieTime).reduce((sum, d) => sum + (d.rice || 0), 0), color: CROP_COLORS.rice },
-                      { name: "Soybean", value: filterTrendByTime(data.dailyTrend, cropPieTime).reduce((sum, d) => sum + (d.soybean || 0), 0), color: CROP_COLORS.soybean },
+                      { name: t("Wheat"), value: filterTrendByTime(data.dailyTrend, cropPieTime).reduce((sum, d) => sum + (d.wheat || 0), 0), color: CROP_COLORS.wheat },
+                      { name: t("Maize"), value: filterTrendByTime(data.dailyTrend, cropPieTime).reduce((sum, d) => sum + (d.maize || 0), 0), color: CROP_COLORS.maize },
+                      { name: t("Rice"), value: filterTrendByTime(data.dailyTrend, cropPieTime).reduce((sum, d) => sum + (d.rice || 0), 0), color: CROP_COLORS.rice },
+                      { name: t("Soybean"), value: filterTrendByTime(data.dailyTrend, cropPieTime).reduce((sum, d) => sum + (d.soybean || 0), 0), color: CROP_COLORS.soybean },
                     ]}
                     cx="50%"
                     cy="50%"
@@ -211,10 +213,10 @@ export default function Analytics() {
                     dataKey="value"
                   >
                     {[
-                      { name: "Wheat", color: CROP_COLORS.wheat },
-                      { name: "Maize", color: CROP_COLORS.maize },
-                      { name: "Rice", color: CROP_COLORS.rice },
-                      { name: "Soybean", color: CROP_COLORS.soybean },
+                      { name: t("Wheat"), color: CROP_COLORS.wheat },
+                      { name: t("Maize"), color: CROP_COLORS.maize },
+                      { name: t("Rice"), color: CROP_COLORS.rice },
+                      { name: t("Soybean"), color: CROP_COLORS.soybean },
                     ].map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
@@ -225,17 +227,17 @@ export default function Analytics() {
             </div>
             <div className="w-1/2 flex flex-col justify-center pl-4 gap-3 border-l border-gray-100">
               {[
-                { name: "Wheat", key: "wheat", color: CROP_COLORS.wheat },
-                { name: "Maize", key: "maize", color: CROP_COLORS.maize },
-                { name: "Rice", key: "rice", color: CROP_COLORS.rice },
-                { name: "Soybean", key: "soybean", color: CROP_COLORS.soybean },
+                { name: t("Wheat"), key: "wheat", color: CROP_COLORS.wheat },
+                { name: t("Maize"), key: "maize", color: CROP_COLORS.maize },
+                { name: t("Rice"), key: "rice", color: CROP_COLORS.rice },
+                { name: t("Soybean"), key: "soybean", color: CROP_COLORS.soybean },
               ].map(c => {
                 const val = filterTrendByTime(data.dailyTrend, cropPieTime).reduce((sum, d) => sum + (d[c.key] || 0), 0);
                 return (
                   <div key={c.name} className="flex justify-between items-center text-sm">
                     <div className="flex items-center gap-2">
                       <div className="w-3 h-3 rounded-full" style={{ backgroundColor: c.color }}></div>
-                      <span className="text-gray-600 font-medium">{c.name}</span>
+                      <span className="font-medium text-gray-600">{c.name}</span>
                     </div>
                     <span className="font-bold text-gray-900">{formatINR(val)}</span>
                   </div>
@@ -248,7 +250,7 @@ export default function Analytics() {
         {/* Expenses Breakdown (Donut) */}
         <div className="bg-white rounded-3xl border border-gray-100 shadow-[0_4px_15px_rgba(0,0,0,0.03)] p-5">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="font-bold text-gray-900">Expenses Breakdown</h3>
+            <h3 className="font-bold text-gray-900">{t("Expenses Breakdown")}</h3>
             <div className="flex bg-gray-100 p-0.5 rounded-lg">
               {['1D', '1W', '1M', '1Y', 'ALL'].map(i => (
                 <button key={i} onClick={() => setExpPieTime(i)} className={`px-2.5 py-1 text-[10px] font-bold rounded-md transition-colors ${expPieTime === i ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}>{i}</button>
@@ -262,10 +264,10 @@ export default function Analytics() {
                 <PieChart>
                   <Pie
                     data={[
-                      { name: "Palledari", value: filterTrendByTime(data.dailyTrend, expPieTime).reduce((sum, d) => sum + (d.palledari || 0), 0), color: EXPENSE_COLORS.palledari },
-                      { name: "Bhada", value: filterTrendByTime(data.dailyTrend, expPieTime).reduce((sum, d) => sum + (d.bhada || 0), 0), color: EXPENSE_COLORS.bhada },
-                      { name: "Misc", value: filterTrendByTime(data.dailyTrend, expPieTime).reduce((sum, d) => sum + (d.misc || 0), 0), color: EXPENSE_COLORS.misc },
-                      { name: "Salary", value: filterTrendByTime(data.dailyTrend, expPieTime).reduce((sum, d) => sum + (d.salary || 0), 0), color: EXPENSE_COLORS.salary },
+                      { name: t("Palledari"), value: filterTrendByTime(data.dailyTrend, expPieTime).reduce((sum, d) => sum + (d.palledari || 0), 0), color: EXPENSE_COLORS.palledari },
+                      { name: t("Bhada"), value: filterTrendByTime(data.dailyTrend, expPieTime).reduce((sum, d) => sum + (d.bhada || 0), 0), color: EXPENSE_COLORS.bhada },
+                      { name: t("Misc"), value: filterTrendByTime(data.dailyTrend, expPieTime).reduce((sum, d) => sum + (d.misc || 0), 0), color: EXPENSE_COLORS.misc },
+                      { name: t("Salary"), value: filterTrendByTime(data.dailyTrend, expPieTime).reduce((sum, d) => sum + (d.salary || 0), 0), color: EXPENSE_COLORS.salary },
                     ]}
                     cx="50%"
                     cy="50%"
@@ -275,10 +277,10 @@ export default function Analytics() {
                     dataKey="value"
                   >
                     {[
-                      { name: "Palledari", color: EXPENSE_COLORS.palledari },
-                      { name: "Bhada", color: EXPENSE_COLORS.bhada },
-                      { name: "Misc", color: EXPENSE_COLORS.misc },
-                      { name: "Salary", color: EXPENSE_COLORS.salary },
+                      { name: t("Palledari"), color: EXPENSE_COLORS.palledari },
+                      { name: t("Bhada"), color: EXPENSE_COLORS.bhada },
+                      { name: t("Misc"), color: EXPENSE_COLORS.misc },
+                      { name: t("Salary"), color: EXPENSE_COLORS.salary },
                     ].map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
@@ -289,17 +291,17 @@ export default function Analytics() {
             </div>
             <div className="w-1/2 flex flex-col justify-center pl-4 gap-3 border-l border-gray-100">
               {[
-                { name: "Palledari", key: "palledari", color: EXPENSE_COLORS.palledari },
-                { name: "Bhada", key: "bhada", color: EXPENSE_COLORS.bhada },
-                { name: "Misc", key: "misc", color: EXPENSE_COLORS.misc },
-                { name: "Salary", key: "salary", color: EXPENSE_COLORS.salary },
+                { name: t("Palledari"), key: "palledari", color: EXPENSE_COLORS.palledari },
+                { name: t("Bhada"), key: "bhada", color: EXPENSE_COLORS.bhada },
+                { name: t("Misc"), key: "misc", color: EXPENSE_COLORS.misc },
+                { name: t("Salary"), key: "salary", color: EXPENSE_COLORS.salary },
               ].map(c => {
                 const val = filterTrendByTime(data.dailyTrend, expPieTime).reduce((sum, d) => sum + (d[c.key] || 0), 0);
                 return (
                   <div key={c.name} className="flex justify-between items-center text-sm">
                     <div className="flex items-center gap-2">
                       <div className="w-3 h-3 rounded-full" style={{ backgroundColor: c.color }}></div>
-                      <span className="text-gray-600 font-medium">{c.name}</span>
+                      <span className="font-medium text-gray-600">{c.name}</span>
                     </div>
                     <span className="font-bold text-gray-900">{formatINR(val)}</span>
                   </div>
@@ -312,7 +314,7 @@ export default function Analytics() {
         {/* P&L Breakdown */}
         <div className="bg-white rounded-3xl border border-gray-100 shadow-[0_4px_15px_rgba(0,0,0,0.03)] divide-y divide-gray-50">
           <div className="px-5 py-4 bg-gradient-to-r from-blue-800 to-blue-700 rounded-t-3xl">
-            <h3 className="font-bold text-white mb-1">P&L Summary</h3>
+            <h3 className="mb-1 font-bold text-white">{t("P&L Summary")}</h3>
             <p className="text-white/60 text-xs font-semibold uppercase">{plData.season}</p>
           </div>
           {plRows.map(r => (
@@ -322,23 +324,23 @@ export default function Analytics() {
             </div>
           ))}
           <div className="flex items-center justify-between px-5 py-4 bg-gray-50 rounded-b-3xl">
-            <span className="font-bold text-gray-900">Net Profit</span>
+            <span className="font-bold text-gray-900">{t("Net Profit")}</span>
             <span className={`font-bold text-xl ${plData.netProfit >= 0 ? "text-[#2a6c4a]" : "text-red-500"}`}>{formatINR(plData.netProfit)}</span>
           </div>
         </div>
 
         {/* Volume Stats */}
         <div className="bg-white rounded-3xl border border-gray-100 shadow-[0_4px_15px_rgba(0,0,0,0.03)] p-5">
-          <h3 className="font-bold text-gray-900 mb-3">Volume Summary</h3>
+          <h3 className="mb-3 font-bold text-gray-900">{t("Volume Summary")}</h3>
           <div className="grid grid-cols-3 gap-2">
             {[
-              { label: "Bought",    value: formatWeight(plData.totalBought),   color: "text-[#2a6c4a]" },
-              { label: "Sold",      value: formatWeight(plData.totalSold),     color: "text-blue-600"  },
-              { label: "Shrinkage", value: formatWeight(plData.shrinkageKg),   color: "text-orange-500"},
+              { label: t("Bought"),    value: formatWeight(plData.totalBought),   color: "text-[#2a6c4a]" },
+              { label: t("Sold"),      value: formatWeight(plData.totalSold),     color: "text-blue-600"  },
+              { label: t("Shrinkage"), value: formatWeight(plData.shrinkageKg),   color: "text-orange-500"},
             ].map(s => (
               <div key={s.label} className="bg-gray-50 rounded-xl p-3 text-center">
                 <p className={`font-bold text-base ${s.color}`}>{s.value}</p>
-                <p className="text-[11px] text-gray-400 font-semibold mt-0.5">{s.label}</p>
+                <p className="mt-0.5 text-[11px] font-semibold text-gray-400">{s.label}</p>
               </div>
             ))}
           </div>

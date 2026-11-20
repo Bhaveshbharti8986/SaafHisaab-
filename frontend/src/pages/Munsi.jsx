@@ -5,8 +5,10 @@ import { api } from "../lib/api.js";
 import { formatINR, formatWeight } from "../lib/format.js";
 import { Scale, Factory, ReceiptText, Mic, TrendingUp, HandCoins } from "lucide-react";
 import DirectPurchaseSheet from "../components/DirectPurchaseSheet.jsx";
+import { useTranslation } from "../lib/i18n.jsx";
 
 export default function Munsi() {
+  const { t } = useTranslation();
   const [stock, setStock]   = useState(null);
   const [pending, setPending] = useState([]);
   const [showPurchase, setShowPurchase] = useState(false);
@@ -27,7 +29,7 @@ export default function Munsi() {
   ];
 
   return (
-    <AppLayout title="Accountant / Clerk Home" munsiMode>
+    <AppLayout title={t("Accountant / Clerk Home")} munsiMode>
       <DirectPurchaseSheet 
         isOpen={showPurchase} 
         onClose={() => {
@@ -38,13 +40,13 @@ export default function Munsi() {
       <div className="bg-gradient-to-b from-blue-800 to-blue-700 px-4 pt-4 pb-12 rounded-b-[2rem] shadow-md relative z-0">
         <div className="flex justify-between items-center mb-4 px-1">
           <div>
-            <p className="text-blue-200 text-xs font-medium uppercase tracking-wider mb-1">Accountant / Clerk · Munshi</p>
-            <h2 className="text-white text-xl font-bold">Daily Operations</h2>
+            <p className="text-blue-200 text-xs font-medium uppercase tracking-wider mb-1">{t("Accountant / Clerk · Munshi")}</p>
+            <h2 className="text-white text-xl font-bold">{t("Daily Operations")}</h2>
           </div>
         </div>
         <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl p-5 flex items-center justify-between shadow-sm">
           <div>
-            <p className="text-white/80 text-[10px] font-bold uppercase tracking-widest mb-1">Pending Sync</p>
+            <p className="text-white/80 text-[10px] font-bold uppercase tracking-widest mb-1">{t("Pending Sync")}</p>
             <p className="text-white text-4xl font-black">{pending.length}</p>
           </div>
           <div className="text-5xl opacity-80 drop-shadow-md">⚖️</div>
@@ -58,7 +60,7 @@ export default function Munsi() {
             const inner = (
               <div className={`${a.color.replace('bg-green-50', 'bg-white')} rounded-2xl border border-gray-200 p-3 shadow-md flex flex-col items-center gap-2 cursor-pointer active:scale-95 transition-transform min-h-[90px] justify-center`}>
                 <div className="drop-shadow-sm scale-90">{a.icon}</div>
-                <span className="font-bold text-xs tracking-wide text-center">{a.label}</span>
+                <span className="font-bold text-xs tracking-wide text-center">{t(a.label)}</span>
               </div>
             );
             
@@ -70,7 +72,7 @@ export default function Munsi() {
               return (
                 <div key={a.label} className="bg-white text-gray-400 rounded-2xl border border-gray-200 p-3 shadow-sm flex flex-col items-center gap-2 min-h-[90px] justify-center opacity-70">
                   <div className="grayscale opacity-50 scale-90">{a.icon}</div>
-                  <span className="font-bold text-xs tracking-wide text-center">{a.label}</span>
+                  <span className="font-bold text-xs tracking-wide text-center">{t(a.label)}</span>
                 </div>
               );
             }
@@ -80,7 +82,7 @@ export default function Munsi() {
         {/* Godown Stock */}
         {stock && (
           <div className="bg-white rounded-3xl border border-gray-100 shadow-[0_4px_15px_rgba(0,0,0,0.03)] p-5">
-            <h3 className="font-bold text-gray-900 mb-3">Godown Stock</h3>
+            <h3 className="font-bold text-gray-900 mb-3">{t("Godown Stock")}</h3>
             <div className="space-y-2">
               {[
                 { crop: "wheat",   emoji: "🌾", max: 50000 },
@@ -95,7 +97,7 @@ export default function Munsi() {
                     <span className="text-lg w-6">{c.emoji}</span>
                     <div className="flex-1">
                       <div className="flex justify-between text-xs mb-1">
-                        <span className="font-semibold text-gray-700 capitalize">{c.crop === 'soybean' ? 'pulse' : c.crop}</span>
+                        <span className="font-semibold text-gray-700 capitalize">{t(c.crop === 'soybean' ? 'Pulse' : c.crop.charAt(0).toUpperCase() + c.crop.slice(1))}</span>
                         <span className="text-gray-400">{formatWeight(val)}</span>
                       </div>
                       <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
@@ -106,7 +108,7 @@ export default function Munsi() {
                 );
               })}
               <div className="flex justify-between items-center pt-2 border-t border-gray-100">
-                <span className="text-sm font-semibold text-orange-600">📦 Empty Bags</span>
+                <span className="text-sm font-semibold text-orange-600">📦 {t("Empty Bags")}</span>
                 <span className="font-bold text-orange-600">{stock.emptyBags ?? 0}</span>
               </div>
             </div>

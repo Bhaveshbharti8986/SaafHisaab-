@@ -1,6 +1,7 @@
 import React from "react";
 import { ArrowLeft } from "lucide-react";
 import { CharacterForRole } from "../Characters.jsx";
+import { useTranslation } from "../../lib/i18n.jsx";
 
 export const authHeroGradients = {
   seth: "linear-gradient(160deg, #2563eb 0%, #1e3a8a 100%)",
@@ -16,6 +17,8 @@ export default function AuthHero({
   height = "clamp(170px, 30dvh, 270px)",
   onBack,
 }) {
+  const { t } = useTranslation();
+
   return (
     <header
       className="relative isolate shrink-0 overflow-hidden"
@@ -25,7 +28,7 @@ export default function AuthHero({
         <button
           type="button"
           onClick={onBack}
-          aria-label="Go back"
+          aria-label={t("Go back")}
           className="absolute left-5 top-5 z-10 flex h-11 w-11 items-center justify-center rounded-full border border-white/15 bg-white/20 text-white shadow-sm"
         >
           <ArrowLeft size={20} />
@@ -34,11 +37,11 @@ export default function AuthHero({
       <div className="absolute left-5 top-[clamp(52px,9dvh,76px)] z-10 max-w-[190px]">
         {eyebrow && (
           <p className="mb-1 text-[11px] font-extrabold uppercase tracking-[.15em] text-white/85">
-            {eyebrow}
+            {t(eyebrow)}
           </p>
         )}
-        <h1 className="text-[27px] font-extrabold leading-tight text-white">{title}</h1>
-        {subtitle && <p className="mt-2 text-sm leading-5 text-white/90">{subtitle}</p>}
+        <h1 className="text-[27px] font-extrabold leading-tight text-white">{t(title)}</h1>
+        {subtitle && <p className="mt-2 text-sm leading-5 text-white/90">{t(subtitle)}</p>}
       </div>
       <CharacterForRole
         role={role}

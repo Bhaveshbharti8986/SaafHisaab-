@@ -24,6 +24,7 @@ import ViewRates from "./pages/ViewRates.jsx";
 import GodownAnalysis from "./pages/GodownAnalysis.jsx";
 import Landing from "./pages/Landing.jsx";
 import Welcome from "./pages/welcome.jsx";
+import { useTranslation } from "./lib/i18n.jsx";
 
 // ✅ Helper: try to refresh the access token silently
 const BACKEND = import.meta.env.VITE_BACKEND_URL || "/api";
@@ -42,6 +43,7 @@ async function tryRefreshToken() {
   }
 }
 export default function App() {
+  const { t } = useTranslation();
   const [location] = useLocation();
 
   // Read stored token and first-login splash flag
@@ -197,21 +199,21 @@ export default function App() {
         </Route>
 
         <Route path="/munsi">
-          {isMunsi ? <Munsi /> : <div className="flex items-center justify-center h-screen"><p className="text-gray-400 font-bold">Unauthorized Access</p></div>}
+          {isMunsi ? <Munsi /> : <div className="flex items-center justify-center h-screen"><p className="font-bold text-gray-400">{t("Unauthorized Access")}</p></div>}
         </Route>
         
         <Route path="/labour">
-          {isLabour ? <Labour /> : <div className="flex items-center justify-center h-screen"><p className="text-gray-400 font-bold">Unauthorized Access</p></div>}
+          {isLabour ? <Labour /> : <div className="flex items-center justify-center h-screen"><p className="font-bold text-gray-400">{t("Unauthorized Access")}</p></div>}
         </Route>
 
         <Route path="/settings" component={Settings} />
         
         <Route path="/weigh">
-          {(isMunsi || isLabour || isSeth) ? <WeighCrop /> : <div className="flex items-center justify-center h-screen"><p className="text-gray-400 font-bold">Unauthorized Access</p></div>}
+          {(isMunsi || isLabour || isSeth) ? <WeighCrop /> : <div className="flex items-center justify-center h-screen"><p className="font-bold text-gray-400">{t("Unauthorized Access")}</p></div>}
         </Route>
         
         <Route path="/munsi/weigh">
-          {(isMunsi || isLabour || isSeth) ? <WeighCrop /> : <div className="flex items-center justify-center h-screen"><p className="text-gray-400 font-bold">Unauthorized Access</p></div>}
+          {(isMunsi || isLabour || isSeth) ? <WeighCrop /> : <div className="flex items-center justify-center h-screen"><p className="font-bold text-gray-400">{t("Unauthorized Access")}</p></div>}
         </Route>
 
         <Route path="/rates">
@@ -219,53 +221,53 @@ export default function App() {
         </Route>
 
         <Route path="/godown">
-          {(isMunsi || isSeth) ? <Godown /> : <p>Unauthorized</p>}
+          {(isMunsi || isSeth) ? <Godown /> : <p>{t("Unauthorized Access")}</p>}
         </Route>
         
         <Route path="/godown-analysis">
-          {(isMunsi || isSeth) ? <GodownAnalysis /> : <p>Unauthorized</p>}
+          {(isMunsi || isSeth) ? <GodownAnalysis /> : <p>{t("Unauthorized Access")}</p>}
         </Route>
 
         <Route path="/wallets">
-          {(isMunsi || isSeth) ? <Wallets /> : <p>Unauthorized</p>}
+          {(isMunsi || isSeth) ? <Wallets /> : <p>{t("Unauthorized Access")}</p>}
         </Route>
 
         <Route path="/expenses">
-          {(isMunsi || isSeth) ? <Expenses /> : <p>Unauthorized</p>}
+          {(isMunsi || isSeth) ? <Expenses /> : <p>{t("Unauthorized Access")}</p>}
         </Route>
 
         <Route path="/farmers">
-          {(isMunsi || isSeth) ? <Farmers /> : <p>Unauthorized</p>}
+          {(isMunsi || isSeth) ? <Farmers /> : <p>{t("Unauthorized Access")}</p>}
         </Route>
 
         <Route path="/farmers/:id">
-          {(isMunsi || isSeth) ? <FarmerDetail /> : <p>Unauthorized</p>}
+          {(isMunsi || isSeth) ? <FarmerDetail /> : <p>{t("Unauthorized Access")}</p>}
         </Route>
 
         {/* Seth ONLY Routes */}
         <Route path="/analytics">
-          {isSeth ? <Analytics /> : <p>Unauthorized</p>}
+          {isSeth ? <Analytics /> : <p>{t("Unauthorized Access")}</p>}
         </Route>
         
         <Route path="/interest">
-          {isSeth ? <InterestDashboard /> : <p>Unauthorized</p>}
+          {isSeth ? <InterestDashboard /> : <p>{t("Unauthorized Access")}</p>}
         </Route>
         
         <Route path="/reports">
-          {isSeth ? <Reports /> : <p>Unauthorized</p>}
+          {isSeth ? <Reports /> : <p>{t("Unauthorized Access")}</p>}
         </Route>
         
         <Route path="/b2b">
-          {isSeth ? <B2bExport /> : <p>Unauthorized</p>}
+          {isSeth ? <B2bExport /> : <p>{t("Unauthorized Access")}</p>}
         </Route>
 
         <Route path="/employees">
-          {isSeth ? <Employees /> : <p>Unauthorized</p>}
+          {isSeth ? <Employees /> : <p>{t("Unauthorized Access")}</p>}
         </Route>
 
         <Route>
           <div className="flex items-center justify-center h-screen">
-            <p className="text-gray-400">Page not found</p>
+            <p className="text-gray-400">{t("Page not found")}</p>
           </div>
         </Route>
       </Switch>

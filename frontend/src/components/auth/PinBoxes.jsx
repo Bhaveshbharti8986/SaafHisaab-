@@ -1,6 +1,8 @@
 import React, { useRef } from "react";
+import { useTranslation } from "../../lib/i18n.jsx";
 
 export default function PinBoxes({ value = "", onChange, length = 4, accent = "seth" }) {
+  const { t } = useTranslation();
   const inputRefs = useRef([]);
   const focusClasses = {
     seth: "focus:border-seth focus:ring-seth/15",
@@ -46,12 +48,12 @@ export default function PinBoxes({ value = "", onChange, length = 4, accent = "s
   };
 
   return (
-    <div className="flex justify-between gap-2" role="group" aria-label={`${length}-digit PIN`}>
+    <div className="flex justify-between gap-2" role="group" aria-label={t(`${length}-digit PIN`)}>
       {Array.from({ length }, (_, index) => (
         <input
           key={index}
           ref={(element) => { inputRefs.current[index] = element; }}
-          aria-label={`PIN digit ${index + 1}`}
+          aria-label={t(`PIN digit ${index + 1}`)}
           type="password"
           inputMode="numeric"
           autoComplete="one-time-code"

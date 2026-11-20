@@ -4,13 +4,15 @@ import AppLayout from "../components/layout/AppLayout.jsx";
 import { api } from "../lib/api.js";
 import { showToast } from "../lib/toast.js";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslation } from "../lib/i18n.jsx";
 
-const employeeRoleLabel = (role) => ({
+const employeeRoleLabel = (role, t) => t(({
   munsi: "Accountant / Clerk",
   labour: "Weighing Staff",
-}[role] || "Staff");
+}[role] || "Staff"));
 
 export default function Employees() {
+  const { t } = useTranslation();
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -29,7 +31,7 @@ export default function Employees() {
       const data = await api.get("/users");
       setEmployees(data);
     } catch (err) {
-      showToast("error", "Failed to fetch employees");
+      showToast("error", t("Failed to fetch employees"));
     } finally {
       setLoading(false);
     }
@@ -37,36 +39,36 @@ export default function Employees() {
 
   const handleRegister = async (e) => {
     e.preventDefault();
-    if (!form.name || !form.mobile) return showToast("error", "Name and mobile are required");
+    if (!form.name || !form.mobile) return showToast("error", t("Name and mobile are required"));
     
     setSubmitting(true);
     try {
       await api.post("/users", form);
-      showToast("success", "Employee registered successfully");
+      showToast("success", t("Employee registered successfully"));
       setShowModal(false);
       setForm({ name: "", mobile: "", email: "", role: "munsi" });
       fetchEmployees();
     } catch (err) {
-      showToast("error", err.message || "Failed to register employee");
+      showToast("error", err.message || t("Failed to register employee"));
     } finally {
       setSubmitting(false);
     }
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to permanently delete this employee? They will lose all access.")) return;
+    if (!window.confirm(t("Are you sure you want to permanently delete this employee? They will lose all access."))) return;
     
     try {
       await api.delete(`/users/${id}`);
-      showToast("success", "Employee deleted permanently");
+      showToast("success", t("Employee deleted permanently"));
       setEmployees(employees.filter(e => e._id !== id));
     } catch (err) {
-      showToast("error", "Failed to delete employee");
+      showToast("error", t("Failed to delete employee"));
     }
   };
 
   return (
-    <AppLayout title="Employee Registry">
+    <AppLayout title={t("Employee Registry")}>
       <div className="p-4 bg-gray-50 min-h-[calc(100vh-56px)] pb-24">
         
         {loading ? (
@@ -86,7 +88,7 @@ export default function Employees() {
                       activeTab === tab ? 'bg-white shadow-sm text-blue-600' : 'text-gray-500 hover:text-gray-700'
                     }`}
                   >
-                  {tab === "all" ? "All" : employeeRoleLabel(tab)}
+                  {tab === "all" ? t("All") : employeeRoleLabel(tab, t)}
                   </button>
                 ))}
               </div>
@@ -96,14 +98,14 @@ export default function Employees() {
             {employees.length === 0 ? (
               <div className="text-center py-12 bg-white rounded-2xl shadow-sm border border-gray-100 mt-4">
                 <UserCircle size={48} className="mx-auto text-gray-300 mb-3" />
-                <p className="text-gray-500 font-medium">No staff accounts yet.</p>
-                <p className="text-sm text-gray-400 mt-1">Add an accountant / clerk or weighing staff member to give them a login.</p>
-                <p className="mt-2 text-xs font-semibold text-blue-600">Use the + button below to add staff.</p>
+                <p className="text-gray-500 font-medium">{t("No staff accounts yet.")}</p>
+                <p className="text-sm text-gray-400 mt-1">{t("Add an accountant / clerk or weighing staff member to give them a login.")}</p>
+                <p className="mt-2 text-xs font-semibold text-blue-600">{t("Use the + button below to add staff.")}</p>
               </div>
             ) : filteredEmployees.length === 0 ? (
               <div className="text-center py-12 bg-white rounded-2xl shadow-sm border border-gray-100">
                 <UserCircle size={48} className="mx-auto text-gray-300 mb-3" />
-                <p className="text-gray-500 font-medium">No {employeeRoleLabel(activeTab)} found.</p>
+                <p className="text-gray-500 font-medium">{t("No")} {employeeRoleLabel(activeTab, t)} {t("found.")}</p>
               </div>
             ) : (
               <div className="space-y-3">
@@ -136,6 +138,7 @@ export default function Employees() {
                     
                     <button 
                       onClick={() => handleDelete(emp._id)}
+                      aria-label={t("Delete employee")}
                       className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"
                     >
                       <Trash2 size={20} />
@@ -151,7 +154,7 @@ export default function Employees() {
 
       {/* Floating Action Button */}
       <button
-        aria-label="Add staff member"
+        aria-label={t("Add staff member")}
         onClick={() => setShowModal(true)}
         className="fixed bottom-20 right-6 w-14 h-14 bg-blue-600 text-white rounded-full flex items-center justify-center shadow-lg active:scale-95 transition-transform z-40"
       >
@@ -174,64 +177,64 @@ export default function Employees() {
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
               className="bg-white w-full max-w-md rounded-t-3xl sm:rounded-3xl p-6 pb-safe"
             >
-              <h3 className="text-xl font-bold text-gray-900 mb-1">Register Employee</h3>
-              <p className="text-sm text-gray-500 mb-6">Create an official ID for your staff.</p>
+              <h3 className="text-xl font-bold text-gray-900 mb-1">{t("Register Employee")}</h3>
+              <p className="text-sm text-gray-500 mb-6">{t("Create an official ID for your staff.")}</p>
 
               <form onSubmit={handleRegister} className="space-y-4">
                 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">Role</label>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">{t("Role")}</label>
                   <div className="grid grid-cols-2 gap-3">
                     <button
                       type="button"
                       onClick={() => setForm({ ...form, role: "munsi" })}
                       className={`p-3 rounded-xl border-2 flex items-center justify-center gap-2 font-bold transition-colors ${form.role === 'munsi' ? 'border-teal-500 bg-teal-50 text-teal-700' : 'border-gray-100 bg-gray-50 text-gray-400'}`}
                     >
-                      <Briefcase size={18}/> Accountant / Clerk
+                      <Briefcase size={18}/> {t("Accountant / Clerk")}
                     </button>
                     <button
                       type="button"
                       onClick={() => setForm({ ...form, role: "labour" })}
                       className={`p-3 rounded-xl border-2 flex items-center justify-center gap-2 font-bold transition-colors ${form.role === 'labour' ? 'border-orange-500 bg-orange-50 text-orange-700' : 'border-gray-100 bg-gray-50 text-gray-400'}`}
                     >
-                      <User size={18}/> Weighing Staff
+                      <User size={18}/> {t("Weighing Staff")}
                     </button>
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">Full Name</label>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">{t("Full Name")}</label>
                   <input
                     type="text"
                     value={form.name}
                     onChange={e => setForm({ ...form, name: e.target.value })}
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="e.g. Ramesh Kumar"
+                    placeholder={t("e.g. Ramesh Kumar")}
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">Mobile Number (Login ID)</label>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">{t("Mobile Number (Login ID)")}</label>
                   <input
                     type="tel"
                     value={form.mobile}
                     onChange={e => setForm({ ...form, mobile: e.target.value.replace(/\D/g, '') })}
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="10-digit number"
+                    placeholder={t("10-digit number")}
                     maxLength={10}
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">Email (Optional)</label>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">{t("Email (Optional)")}</label>
                   <input
                     type="email"
                     value={form.email}
                     onChange={e => setForm({ ...form, email: e.target.value })}
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="e.g. ramesh@gmail.com"
+                    placeholder={t("e.g. ramesh@gmail.com")}
                   />
                 </div>
 
@@ -241,14 +244,14 @@ export default function Employees() {
                     onClick={() => setShowModal(false)}
                     className="flex-1 py-3.5 rounded-xl font-bold text-gray-500 bg-gray-100 active:bg-gray-200"
                   >
-                    Cancel
+                    {t("Cancel")}
                   </button>
                   <button
                     type="submit"
                     disabled={submitting}
                     className="flex-1 py-3.5 rounded-xl font-bold text-white bg-blue-600 active:bg-blue-700 disabled:opacity-50"
                   >
-                    {submitting ? "Registering..." : "Register"}
+                    {submitting ? t("Registering...") : t("Register")}
                   </button>
                 </div>
               </form>

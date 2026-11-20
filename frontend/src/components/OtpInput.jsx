@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useTranslation } from "../lib/i18n.jsx";
 
 export default function OtpInput({ length = 6, onComplete, onChange, value, accent = "seth" }) {
+  const { t } = useTranslation();
   const [otp, setOtp] = useState(new Array(length).fill(""));
   const inputRefs = useRef([]);
   const accentClasses = {
@@ -57,12 +59,12 @@ export default function OtpInput({ length = 6, onComplete, onChange, value, acce
   };
 
   return (
-    <div className="flex justify-center gap-1.5" role="group" aria-label={`${length}-digit verification code`}>
+    <div className="flex justify-center gap-1.5" role="group" aria-label={t(`${length}-digit verification code`)}>
       {otp.map((digit, index) => (
         <input
           key={index}
           ref={(el) => (inputRefs.current[index] = el)}
-          aria-label={`OTP digit ${index + 1}`}
+          aria-label={t(`OTP digit ${index + 1}`)}
           type="text"
           inputMode="numeric"
           maxLength={1}
