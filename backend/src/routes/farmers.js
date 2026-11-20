@@ -8,7 +8,8 @@ import {
   updateFarmer,
   deleteFarmer,
   getFarmerSummary,
-  getFarmerTimeline
+  getFarmerTimeline,
+  getFarmerStatement
 } from "../controllers/farmersController.js";
 
 const router = Router();
@@ -19,6 +20,7 @@ router.post("/farmers", authorize("seth", "munsi"), createFarmer);
 router.get("/farmers/:id", getFarmerById);
 router.patch("/farmers/:id", authorize("seth", "munsi"), updateFarmer);
 router.delete("/farmers/:id", authorize("seth", "munsi"), deleteFarmer);
+router.get("/farmers/:id/statement", authorize("seth", "munsi"), getFarmerStatement);
 router.get("/farmers/:id/summary", authorize("seth", "munsi"), getFarmerSummary);
 router.get("/farmers/:id/timeline", authorize("seth", "munsi"), getFarmerTimeline);
 

@@ -26,5 +26,6 @@ const settlementSchema = new mongoose.Schema({
 settlementSchema.index({ farmerId: 1, createdAt: -1 });
 settlementSchema.index({ status: 1 });
 settlementSchema.index({ createdAt: -1 });
+settlementSchema.index({ farmerId: 1, sethId: 1, createdAt: 1 });
 
 export default mongoose.model("Settlement", settlementSchema);

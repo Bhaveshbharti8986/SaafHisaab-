@@ -7,6 +7,8 @@ const transactionSchema = new mongoose.Schema({
   type:       { type: String, enum: ["advance", "payment", "deposit", "bag_issue", "bag_return", "petty_cash"], required: true },
   amount:     { type: Number, required: true },
   interestRecovered: { type: Number, default: 0 },
+  principalRecovered: { type: Number, default: 0 },
+  jamaAdded: { type: Number, default: 0 },
   paymentMode:{ type: String, enum: ["Cash", "UPI", "PhonePe", "GPay", "Paytm"], default: "Cash" },
   paidBy:     { type: String, enum: ["seth", "munsi"], default: "munsi" },
   bags:       { type: Number, default: null },
@@ -19,5 +21,6 @@ const transactionSchema = new mongoose.Schema({
 transactionSchema.index({ farmerId: 1, createdAt: -1 });
 transactionSchema.index({ type: 1 });
 transactionSchema.index({ createdAt: -1 });
+transactionSchema.index({ farmerId: 1, sethId: 1, createdAt: 1 });
 
 export default mongoose.model("Transaction", transactionSchema);

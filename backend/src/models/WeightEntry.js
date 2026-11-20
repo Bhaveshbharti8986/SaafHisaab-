@@ -22,5 +22,6 @@ const weightEntrySchema = new mongoose.Schema({
 weightEntrySchema.index({ farmerId: 1, createdAt: -1 });
 weightEntrySchema.index({ status: 1 });
 weightEntrySchema.index({ createdAt: -1 });
+weightEntrySchema.index({ farmerId: 1, sethId: 1, createdAt: 1 });
 
 export default mongoose.model("WeightEntry", weightEntrySchema);

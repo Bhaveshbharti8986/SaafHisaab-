@@ -5,6 +5,7 @@ import Transaction from "../models/Transaction.js";
 import Settlement from "../models/Settlement.js";
 import InterestAccrual from "../models/InterestAccrual.js";
 import { accrueInterestForFarmer } from "../utils/interest.js";
+import { buildFarmerStatement } from "../services/farmerStatementService.js";
 
 const ADVANCE_PICKER_PAGE_SIZE = 20;
 
@@ -122,6 +123,16 @@ export const deleteFarmer = async (req, res) => {
   const farmer = await Farmer.findOneAndDelete({ _id: req.params.id, sethId: req.sethId });
   if (!farmer) return res.status(404).json({ error: "Farmer not found" });
   res.sendStatus(204);
+};
+
+export const getFarmerStatement = async (req, res) => {
+  const result = await buildFarmerStatement({
+    farmerId: req.params.id,
+    sethId: req.sethId,
+    from: req.query.from,
+    to: req.query.to,
+  });
+  return res.status(result.status).json(result.body);
 };
 
 export const getFarmerSummary = async (req, res) => {

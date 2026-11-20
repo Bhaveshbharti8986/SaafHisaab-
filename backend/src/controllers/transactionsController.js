@@ -1,8 +1,6 @@
 import Transaction from "../models/Transaction.js";
 import Farmer from "../models/Farmer.js";
 import { accrueInterestForFarmer } from "../utils/interest.js";
-import Settlement from "../models/Settlement.js";
-import {updateLatestSettlement }from "../utils/helper.js";
 export const getTransactions = async (req, res) => {
   const { farmerId, type, limit } = req.query;
   const filter = { sethId: req.sethId };
@@ -23,6 +21,9 @@ export const createTransaction = async (req, res) => {
   let parsedAmount = Number(amount);
   let parsedBags = bags !== undefined ? Number(bags) : undefined;
   let parsedInterestRate = interestRate !== undefined ? Number(interestRate) : undefined;
+  let interestRecovered = 0;
+  let principalRecovered = 0;
+  let jamaAdded = 0;
 
   // Security Loophole fix: Prevent negative transactions
   if (parsedAmount < 0) return res.status(400).json({ error: "Amount cannot be negative" });
@@ -51,13 +52,12 @@ export const createTransaction = async (req, res) => {
     //recover intrest first   
     if (farmer.accruedInterest > 0) {
       if (remaining >= farmer.accruedInterest) {
-     const interestRecovered = farmer.accruedInterest;
-        await updateLatestSettlement(farmerId, req.sethId, interestRecovered);
+        interestRecovered = farmer.accruedInterest;
         remaining -= interestRecovered;
         farmer.accruedInterest = 0;  // means total intrest recovered so it scou also updade in satelment intrest recovred 
       } else {
+        interestRecovered = remaining;
         farmer.accruedInterest -= remaining;
-        await updateLatestSettlement(farmerId, req.sethId, remaining);
         remaining = 0;
       }
     }
@@ -68,16 +68,19 @@ export const createTransaction = async (req, res) => {
     //pay the advance means paying principal
     if (remaining > 0 && farmer.advanceAmount > 0) {
       if (remaining >= farmer.advanceAmount) {
+        principalRecovered = farmer.advanceAmount;
         remaining -= farmer.advanceAmount;
         farmer.advanceAmount = 0;
       } else {
+        principalRecovered = remaining;
         farmer.advanceAmount -= remaining;
         remaining = 0;
       }
     }
     // than exta deposit to farmer balence
     if (remaining > 0) {
-      farmer.balance += remaining;
+      jamaAdded = remaining;
+      farmer.balance += jamaAdded;
     }
   }
 
@@ -101,6 +104,9 @@ export const createTransaction = async (req, res) => {
     farmerName: farmer.name,
     type,
     amount: parsedAmount,
+    interestRecovered: type === "deposit" ? interestRecovered : 0,
+    principalRecovered: type === "deposit" ? principalRecovered : 0,
+    jamaAdded: type === "deposit" ? jamaAdded : 0,
     paymentMode,
     paidBy,
     bags:  parsedBags  ?? null,

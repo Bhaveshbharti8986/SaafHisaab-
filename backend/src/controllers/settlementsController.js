@@ -46,6 +46,13 @@ export const createSettlement = async (req, res) => {
   const farmer = await Farmer.findOne({ _id: farmerId, sethId: req.sethId });
   if (!farmer) return res.status(404).json({ error: "Farmer not found" });
 
+  const linkedDelivery = await WeightEntry.findOne({
+    _id: weightEntryId,
+    farmerId,
+    sethId: req.sethId,
+  });
+  if (!linkedDelivery) return res.status(404).json({ error: "Linked delivery not found" });
+
   await accrueInterestForFarmer(farmer);
 
   // We always add jamaRecovered (which stays in Jama/recovers deficit)
@@ -89,7 +96,7 @@ export const createSettlement = async (req, res) => {
     runningInterest:  farmer.accruedInterest,
   });
 
-  await WeightEntry.findOneAndUpdate({ _id: weightEntryId, sethId: req.sethId }, { status: "approved" });
+  await WeightEntry.findOneAndUpdate({ _id: weightEntryId, farmerId, sethId: req.sethId }, { status: "approved" });
 
   res.status(201).json(settlement);
 };

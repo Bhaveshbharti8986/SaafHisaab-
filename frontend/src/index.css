@@ -15,3 +15,163 @@ body {
 }
 
 ::-webkit-scrollbar { display: none; }
+
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 12mm 10mm 14mm 10mm;
+  }
+
+  /* Universal reset for print */
+  html, body {
+    background: #ffffff !important;
+    color: #111827 !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Hide app navigation, headers, sidebars, floating action buttons, footer */
+  nav,
+  header,
+  aside,
+  footer,
+  [role="navigation"],
+  .no-print {
+    display: none !important;
+  }
+
+  /* Hide background farmer detail profile when statement dialog is present */
+  .farmer-detail-content,
+  body.has-farmer-statement .farmer-detail-content,
+  body.printing-statement .farmer-detail-content,
+  body:has(#printable-farmer-statement) .farmer-detail-content {
+    display: none !important;
+  }
+
+  /* Modal Backdrop: Completely reset position from fixed to static and remove scroll constraints */
+  .farmer-statement-modal-backdrop,
+  body.has-farmer-statement .fixed.inset-0,
+  body.printing-statement .fixed.inset-0,
+  body:has(#printable-farmer-statement) .fixed.inset-0 {
+    position: static !important;
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    z-index: auto !important;
+    inset: auto !important;
+  }
+
+  /* Modal Container Card: Expand fully, eliminate max-height and overflow-y */
+  .farmer-statement-modal-card,
+  body.has-farmer-statement [class*="max-h-"],
+  body.printing-statement [class*="max-h-"],
+  body:has(#printable-farmer-statement) [class*="max-h-"] {
+    position: static !important;
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Statement container */
+  #printable-farmer-statement {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+  }
+
+  /* Table wrapper scroll containers must be visible and unconstrained */
+  #printable-farmer-statement .overflow-x-auto,
+  #printable-farmer-statement [class*="overflow-"] {
+    overflow: visible !important;
+    max-height: none !important;
+  }
+
+  /* Table pagination rules across pages - using separate border-spacing to eliminate Chromium duplicate row bug */
+  #printable-farmer-statement table {
+    width: 100% !important;
+    min-width: 0 !important;
+    table-layout: auto !important;
+    border-collapse: separate !important;
+    border-spacing: 0 !important;
+    page-break-inside: auto !important;
+    break-inside: auto !important;
+  }
+
+  thead {
+    display: table-header-group !important;
+    page-break-after: avoid !important;
+    break-after: avoid !important;
+  }
+
+  tbody {
+    display: table-row-group !important;
+  }
+
+  tr {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  td, th {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    overflow: visible !important;
+  }
+
+  /* Prevent nested flex elements from causing Chromium row re-print */
+  td * {
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  /* Keep headings with their tables */
+  section {
+    page-break-inside: auto !important;
+    break-inside: auto !important;
+    margin-bottom: 1.25rem !important;
+  }
+
+  section > h3 {
+    page-break-after: avoid !important;
+    break-after: avoid !important;
+  }
+
+  /* Prevent summary and banners from being sliced across pages */
+  .print-avoid-break,
+  .print-card {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* Bori Chips: Never split bag number and weight across lines */
+  .bori-chip {
+    white-space: nowrap !important;
+    display: inline-flex !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+}

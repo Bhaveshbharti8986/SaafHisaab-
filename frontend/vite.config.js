@@ -1,6 +1,21 @@
 import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
+import path from "node:path";
+import fs from "node:fs";
+import { fileURLToPath } from "node:url";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const localTmp = path.resolve(__dirname, "node_modules/.tmp");
+try {
+  if (!fs.existsSync(localTmp)) {
+    fs.mkdirSync(localTmp, { recursive: true });
+  }
+  process.env.TEMP = localTmp;
+  process.env.TMP = localTmp;
+} catch (e) {
+  // ignore
+}
 
 export default defineConfig(({ mode }) => {
   // 👇 Dynamically load env variables based on mode (development/production)
@@ -50,7 +65,7 @@ export default defineConfig(({ mode }) => {
       allowedHosts: true,
       proxy: {
         "/api": {
-          target: env.VITE_BACKEND_URL, // 👈 Uses loaded env
+          target: env.VITE_BACKEND_URL||"http://localhost:8080", // 👈 Uses loaded env
           changeOrigin: true,
           secure: false, // Set to false to avoid local SSL strictness issues
         },

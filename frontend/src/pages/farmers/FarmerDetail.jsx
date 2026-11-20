@@ -6,9 +6,10 @@ import { decodeToken } from "../../lib/jwt.js";
 import { formatINR, formatWeight } from "../../lib/format.js";
 import { getCropConfig, getAvatarColor, getInitials } from "../../lib/crop.js";
 import { showToast } from "../../lib/toast.js";
-import { MessageCircle, X, Check, Banknote, QrCode, Percent, ChevronDown } from "lucide-react";
+import { MessageCircle, X, Check, Banknote, QrCode, Percent, ChevronDown, FileText } from "lucide-react";
 import { useTranslation } from "../../lib/i18n.jsx";
 import SaafHisaabLogo from "../SaafHisaabLogo.jsx";
+import FarmerReportDialog from "../../components/reports/FarmerReportDialog.jsx";
 
 const TABS = ["All", "Deliveries", "Payments", "Advances"];
 const PAYMENT_METHODS = [
@@ -30,6 +31,7 @@ export default function FarmerDetail() {
   const [interestDetailsOpen, setInterestDetailsOpen] = useState(false);
   const [timelineLimit, setTimelineLimit] = useState(30);
   const [notFound, setNotFound] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
 
   // Settlement state
   const token = localStorage.getItem("accessToken");
@@ -316,9 +318,9 @@ export default function FarmerDetail() {
 
   return (
     <AppLayout title={t("Farmer Khata")} showBack>
-
-      {/* ── Profile header ──────────────────────────────────────────────────── */}
-      <div className="bg-gradient-to-b from-blue-800 to-blue-700 px-4 pb-8 pt-4 rounded-b-[2rem] shadow-md relative z-0">
+      <div className="farmer-detail-content">
+        {/* ── Profile header ──────────────────────────────────────────────────── */}
+        <div className="bg-gradient-to-b from-blue-800 to-blue-700 px-4 pb-8 pt-4 rounded-b-[2rem] shadow-md relative z-0">
         <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl p-5 shadow-sm">
           <div className="flex items-center gap-3 mb-4">
             <div className={`w-14 h-14 rounded-full flex items-center justify-center text-white font-bold text-xl shrink-0 shadow-inner ${getAvatarColor(farmer.name)}`}>
@@ -381,6 +383,7 @@ export default function FarmerDetail() {
         <button onClick={() => { setTxnType("payment"); setTxnModal(true); }} className="px-5 py-3 bg-white text-red-600 rounded-2xl font-bold text-xs whitespace-nowrap shadow-[0_4px_15px_rgba(0,0,0,0.05)] border border-gray-100 active:scale-95 transition-transform flex items-center gap-2"><span className="text-lg leading-none">💸</span> {t("Give Payment")}</button>
         <button onClick={() => { setTxnType("deposit"); setTxnModal(true); }} className="px-5 py-3 bg-white text-emerald-600 rounded-2xl font-bold text-xs whitespace-nowrap shadow-[0_4px_15px_rgba(0,0,0,0.05)] border border-gray-100 active:scale-95 transition-transform flex items-center gap-2"><span className="text-lg leading-none">📥</span> {t("Receive Cash")}</button>
         <button onClick={() => { setTxnType("advance"); setTxnModal(true); }} className="px-5 py-3 bg-white text-blue-600 rounded-2xl font-bold text-xs whitespace-nowrap shadow-[0_4px_15px_rgba(0,0,0,0.05)] border border-gray-100 active:scale-95 transition-transform flex items-center gap-2"><span className="text-lg leading-none">💰</span> {t("Give Advance")}</button>
+        <button onClick={() => setReportOpen(true)} className="px-5 py-3 bg-white text-[#2a6c4a] rounded-2xl font-bold text-xs whitespace-nowrap shadow-[0_4px_15px_rgba(0,0,0,0.05)] border border-gray-100 active:scale-95 transition-transform flex items-center gap-2"><FileText size={17} /> Farmer Statement / PDF</button>
       </div>
 
       <div className="p-4 space-y-4">
@@ -994,6 +997,14 @@ export default function FarmerDetail() {
           </div>
         </section>
       </div>
+      </div>
+
+      <FarmerReportDialog
+        open={reportOpen}
+        onClose={() => setReportOpen(false)}
+        farmer={farmer}
+        language={language}
+      />
 
       {/* ── Transaction Modal ──────────────────────────────────────────────── */}
       {txnModal && (

@@ -11,4 +11,6 @@ const interestAccrualSchema = new mongoose.Schema({
   toDate: { type: Date, required: true }
 }, { timestamps: true });
 
+interestAccrualSchema.index({ farmerId: 1, sethId: 1, createdAt: 1 });
+
 export default mongoose.model("InterestAccrual", interestAccrualSchema);
